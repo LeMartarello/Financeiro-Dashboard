@@ -264,12 +264,19 @@ tr:hover td{background:#FEF0EA}
 
     <div class="page active" id="page-dash-plano" style="flex:1;overflow-y:auto;overflow-x:hidden">
       <div class="content">
-      <div class="kpi-section-label">Plano Financeiro — Contas a Pagar</div>
-      <div class="kpis" style="margin-bottom:14px">
-        <div class="kpi pt"><div class="kpi-label">Total a Pagar</div><div class="kpi-value" id="kpf-total">—</div><div class="kpi-sub" id="kpf-qtd">—</div></div>
-        <div class="kpi pv"><div class="kpi-label">Vencido</div><div class="kpi-value" id="kpf-venc">—</div><div class="kpi-sub" id="kpf-venc-q">—</div></div>
-        <div class="kpi pa"><div class="kpi-label">A Vencer</div><div class="kpi-value" id="kpf-avenc">—</div><div class="kpi-sub" id="kpf-avenc-q">—</div></div>
+      <div class="kpi-section-label">Contas a Pagar</div>
+      <div class="kpis" style="margin-bottom:8px">
+        <div class="kpi pt" style="cursor:pointer" onclick="openKpiDetail('pagar','all')" title="Ver detalhamento por fornecedor"><div class="kpi-label">Total a Pagar</div><div class="kpi-value" id="kpf-total">—</div><div class="kpi-sub" id="kpf-qtd">—</div></div>
+        <div class="kpi pv" style="cursor:pointer" onclick="openKpiDetail('pagar','vencido')" title="Ver detalhamento por fornecedor"><div class="kpi-label">Vencido</div><div class="kpi-value" id="kpf-venc">—</div><div class="kpi-sub" id="kpf-venc-q">—</div></div>
+        <div class="kpi pa" style="cursor:pointer" onclick="openKpiDetail('pagar','avencer')" title="Ver detalhamento por fornecedor"><div class="kpi-label">A Vencer</div><div class="kpi-value" id="kpf-avenc">—</div><div class="kpi-sub" id="kpf-avenc-q">—</div></div>
         <div class="kpi pf"><div class="kpi-label">Fornecedores</div><div class="kpi-value" id="kpf-forn">—</div><div class="kpi-sub">únicos</div></div>
+      </div>
+      <div class="kpi-section-label">Contas a Receber</div>
+      <div class="kpis" style="margin-bottom:14px">
+        <div class="kpi rt" style="cursor:pointer" onclick="openKpiDetail('receber','all')" title="Ver detalhamento por cliente"><div class="kpi-label">Total a Receber</div><div class="kpi-value" id="kpr-total">—</div><div class="kpi-sub" id="kpr-qtd">—</div></div>
+        <div class="kpi rv" style="cursor:pointer" onclick="openKpiDetail('receber','vencido')" title="Ver detalhamento por cliente"><div class="kpi-label">Vencido</div><div class="kpi-value" id="kpr-venc">—</div><div class="kpi-sub" id="kpr-venc-q">—</div></div>
+        <div class="kpi ra" style="cursor:pointer" onclick="openKpiDetail('receber','areceber')" title="Ver detalhamento por cliente"><div class="kpi-label">A Receber</div><div class="kpi-value" id="kpr-avenc">—</div><div class="kpi-sub" id="kpr-avenc-q">—</div></div>
+        <div class="kpi rf"><div class="kpi-label">Clientes</div><div class="kpi-value" id="kpr-cli">—</div><div class="kpi-sub">únicos</div></div>
       </div>
       <div class="legend-row">
         <div class="leg"><div class="leg-dot" style="background:#7F1D1D"></div>Vencido</div>
@@ -335,7 +342,7 @@ tr:hover td{background:#FEF0EA}
     <button class="btn-p" onclick="exportBaseExcel('p')" style="margin-left:auto;padding:5px 12px;font-size:11px">Exportar Excel</button>
   </div>
   <div class="base-table-wrap"><div class="base-scroll">
-    <table><thead><tr><th>Empresa</th><th>Fornecedor</th><th>Obra/Centro</th><th>Documento</th><th>Tipo</th><th>Plano Financeiro</th><th>Vencimento</th><th>Mês</th><th>Ano</th><th>Status</th><th class="tr">Valor (R$)</th></tr></thead>
+    <table><thead><tr><th>Empresa</th><th>Fornecedor</th><th>Obra/Centro</th><th>Documento</th><th>Tipo</th><th>Título</th><th>Plano Financeiro</th><th>Vencimento</th><th>Mês</th><th>Ano</th><th>Status</th><th class="tr">Valor (R$)</th></tr></thead>
     <tbody id="bbd-p"></tbody></table>
     <div class="empty" id="bbe-p" style="display:none">Nenhum registro.</div>
   </div></div>
@@ -455,7 +462,8 @@ function adjustDueDate(dateStr) {
 }
 // ────────────────────────────────────────────────────────────
 
-function adjustAllDates(rows) {
+function adjustAllDates(rows, isReceber) {
+  // isReceber=true for RAW_RECEBER, false/omitted for RAW_PAGAR
   const todayISO = new Date().toISOString().slice(0,10);
   rows.forEach(function(r) {
     if (!r.data) return;
@@ -467,15 +475,11 @@ function adjustAllDates(rows) {
       r.mes    = parts[0] + '-' + parts[1];
       r.ano    = parseInt(parts[0]);
     }
-    // Recompute status based on effective date
-    const isPagar = (r.status === 'VENCIDO' || r.status === 'A VENCER');
-    const isReceber = (r.status === 'VENCIDO' || r.status === 'A RECEBER');
-    if (isPagar && !isReceber) {
-      r.status = r.data < todayISO ? 'VENCIDO' : 'A VENCER';
-    } else if (r.fornecedor && !r.cliente) {
-      r.status = r.data < todayISO ? 'VENCIDO' : 'A VENCER';
-    } else {
+    // Recompute status using effective date
+    if (isReceber) {
       r.status = r.data < todayISO ? 'VENCIDO' : 'A RECEBER';
+    } else {
+      r.status = r.data < todayISO ? 'VENCIDO' : 'A VENCER';
     }
   });
 }
@@ -498,6 +502,27 @@ const semLabel = s => {
   const p=s.split('/');
   return fmtDDMM(p[0])+' a '+fmtDDMM(p[1]);
 };
+
+function semLabelBiz(sem) {
+  // Returns "DD/MM a DD/MM" from Monday to last business day of the week
+  var parts = sem.split('/');
+  var monStr = parts[0]; // YYYY-MM-DD (Monday)
+  var p = monStr.split('-');
+  var mon = new Date(parseInt(p[0]), parseInt(p[1])-1, parseInt(p[2]));
+  // Find last business day: start from Sunday (Mon+6) go backwards
+  var last = new Date(mon); last.setDate(mon.getDate()+6); // Sunday
+  while (last >= mon) {
+    var dow = last.getDay();
+    var iso = last.getFullYear()+'-'+String(last.getMonth()+1).padStart(2,'0')+'-'+String(last.getDate()).padStart(2,'0');
+    if (dow !== 0 && dow !== 6 && !SP_HOLIDAYS.has(iso)) break;
+    last.setDate(last.getDate()-1);
+  }
+  return fmtDDMM(monStr) + ' a ' + fmtDDMM(last.getFullYear()+'-'+String(last.getMonth()+1).padStart(2,'0')+'-'+String(last.getDate()).padStart(2,'0'));
+}
+
+function effSemLabel(sem, dp, dr) {
+  return semLabelBiz(sem);
+}
 const semLabelShort = s => {
   const p=s.split('/');
   return fmtDDMM(p[0]);
@@ -545,8 +570,8 @@ function showPage(id,el){
 }
 
 function initFiltersFromData(){
-  adjustAllDates(RAW_PAGAR);
-  adjustAllDates(RAW_RECEBER);
+  adjustAllDates(RAW_PAGAR, false);
+  adjustAllDates(RAW_RECEBER, true);
   allEmpresas=[...new Set([...RAW_PAGAR.map(r=>r.empresa),...RAW_RECEBER.map(r=>r.empresa)])].filter(Boolean).sort();
   allTipos=[...new Set([...RAW_PAGAR.map(r=>r.tipo_doc),...RAW_RECEBER.map(r=>r.tipo_doc)])].filter(Boolean).sort();
   allFornecedores=[...new Set(RAW_PAGAR.map(r=>r.fornecedor))].filter(Boolean).sort();
@@ -777,82 +802,172 @@ function toggleYear(y,dp,dr){
 
 function buildYearBody(y,yData,yMax,dp,dr){
   const body=document.createElement('div'); body.className='year-body';
-  const chartH=230; const BAR_W=14;
-  const flex=document.createElement('div'); flex.style.cssText='display:flex;align-items:flex-start;gap:0';
-  // Y axis
-  const yAxis=document.createElement('div');
-  yAxis.style.cssText=`display:flex;flex-direction:column;justify-content:space-between;height:${chartH}px;min-width:48px;text-align:right;padding-right:6px;padding-bottom:28px;flex-shrink:0`;
-  [4,3,2,1,0].forEach(i=>{const t=document.createElement('div');t.style.cssText='font-size:9px;color:#C0C0C0;white-space:nowrap';const v=Math.round(yMax*i/4);t.textContent=v>=1000?Math.round(v/1000)+'k':v;yAxis.appendChild(t);});
-  flex.appendChild(yAxis);
-  const main=document.createElement('div'); main.style.cssText='flex:1;min-width:0;overflow-x:auto';
-  const barsArea=document.createElement('div');
-  barsArea.style.cssText=`display:flex;align-items:flex-end;border-bottom:2px solid #E8E8E8;height:${chartH-28}px;position:relative;gap:0`;
-  // Grid lines
-  const gl=document.createElement('div');
-  gl.style.cssText='position:absolute;left:0;right:0;top:0;bottom:0;display:flex;flex-direction:column;justify-content:space-between;pointer-events:none;z-index:0';
-  [0,1,2,3,4].forEach(()=>{const l=document.createElement('div');l.style.cssText='border-top:1px solid #F3F3F3;width:100%';gl.appendChild(l);});
-  barsArea.appendChild(gl);
-  const months=Object.keys(yData).sort();
-  months.forEach((mes,mIdx)=>{
-    const sems=Object.keys(yData[mes]).sort();
-    const isAlt=mIdx%2===1; // alternating bg
-    const mc=document.createElement('div');
-    mc.style.cssText=`display:flex;flex-direction:column;flex:1;min-width:0;border-right:1px solid ${isAlt?'#F0C8A0':'#EBEBEB'};padding:0 3px;position:relative;${isAlt?'background:'+MONTH_BG_ALT:''}`;
-    const mb=document.createElement('div');
-    mb.style.cssText='display:flex;gap:2px;align-items:flex-end;justify-content:center;height:100%;position:relative;z-index:1';
-    sems.forEach(sem=>{
-      const d=yData[mes][sem];
-      const pTot=Math.abs(d.pv)+Math.abs(d.pa); const rTot=d.rv+d.ra; const sal=rTot-pTot;
-      const pH=yMax>0?Math.max(2,Math.round(pTot/yMax*(chartH-32))):0;
-      const rH=yMax>0?Math.max(0,Math.round(rTot/yMax*(chartH-32))):0;
-      const sH=yMax>0?Math.max(2,Math.round(Math.abs(sal)/yMax*(chartH-32))):0;
-      const pvH=pTot>0?Math.round(Math.abs(d.pv)/pTot*pH):0;
-      const rvH=rTot>0?Math.round(d.rv/rTot*rH):0;
-      const grp=document.createElement('div');
-      grp.style.cssText='display:flex;gap:1px;align-items:flex-end;cursor:pointer';
-      grp.title=semLabel(sem);
-      if(pTot>0){
-        const pb=document.createElement('div');
-        pb.style.cssText=`width:${BAR_W}px;height:${pH}px;display:flex;flex-direction:column;justify-content:flex-end;cursor:pointer`;
-        pb.innerHTML=`<div style="width:100%;height:${pH-pvH}px;background:${C.pagarAvenc};border-radius:${pH-pvH>0?'2px 2px':'0'} 0 0"></div><div style="width:100%;height:${pvH}px;background:${C.pagarVenc}"></div>`;
-        pb.title=`Pagar ${semLabel(sem)}: ${fmtNeg(d.pv+d.pa)}`;
-        pb.onclick=e=>{e.stopPropagation();openDetailTab(sem,'pagar',dp);};
-        grp.appendChild(pb);
-      }
-      if(rTot>0){
-        const rb=document.createElement('div');
-        rb.style.cssText=`width:${BAR_W}px;height:${rH}px;display:flex;flex-direction:column;justify-content:flex-end;cursor:pointer`;
-        rb.innerHTML=`<div style="width:100%;height:${rH-rvH}px;background:${C.recAvenc};border-radius:${rH-rvH>0?'2px 2px':'0'} 0 0"></div><div style="width:100%;height:${rvH}px;background:${C.recVenc}"></div>`;
-        rb.title=`Receber ${semLabel(sem)}: ${fmtPos(rTot)}`;
-        rb.onclick=e=>{e.stopPropagation();openDetailTab(sem,'receber',dr);};
-        grp.appendChild(rb);
-      }
-      if(Math.abs(sal)>0){
-        const sb=document.createElement('div');
-        sb.style.cssText=`width:9px;height:${sH}px;background:${sal>=0?C.saldoPos:C.saldoNeg};border-radius:2px 2px 0 0`;
-        sb.title=`Saldo ${semLabel(sem)}: ${sal>=0?fmtPos(sal):fmtNeg(sal)}`;
-        grp.appendChild(sb);
-      }
-      mb.appendChild(grp);
+  const chartH=220; const BAR_W=13;
+  const MONTH_NAMES_LOCAL=['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+
+  function buildHalf(monthKeys) {
+    if(!monthKeys.length) return null;
+
+    // Compute scale max for this half
+    let halfMax=0;
+    monthKeys.forEach(m=>Object.keys(yData[m]||{}).forEach(s=>{
+      const d=yData[m][s];
+      halfMax=Math.max(halfMax,Math.abs(d.pv)+Math.abs(d.pa),d.rv+d.ra);
+    }));
+    if(!halfMax) halfMax=1;
+
+    const wrap=document.createElement('div');
+    wrap.style.cssText='display:flex;align-items:flex-start;gap:0;margin-bottom:4px';
+
+    // Y axis
+    const yAxis=document.createElement('div');
+    yAxis.style.cssText=`display:flex;flex-direction:column;justify-content:space-between;height:${chartH+20}px;min-width:48px;text-align:right;padding-right:6px;padding-bottom:48px;flex-shrink:0`;
+    [4,3,2,1,0].forEach(i=>{
+      const t=document.createElement('div');
+      t.style.cssText='font-size:9px;color:#C0C0C0;white-space:nowrap';
+      const v=Math.round(halfMax*i/4);
+      t.textContent=v>=1000?Math.round(v/1000)+'k':v;
+      yAxis.appendChild(t);
     });
-    mc.appendChild(mb); barsArea.appendChild(mc);
-  });
-  main.appendChild(barsArea);
-  // Month labels
-  const lblRow=document.createElement('div'); lblRow.style.cssText='display:flex;margin-top:4px';
-  months.forEach((mes,mIdx)=>{
-    const lbl=document.createElement('div'); lbl.className='month-lbl';
-    const mNum=parseInt(mes.split('-')[1]);
-    lbl.textContent=MONTH_NAMES[mNum-1];
-    lbl.title='Ver detalhamento de '+MONTH_NAMES[mNum-1];
-    lbl.onmouseenter=()=>lbl.style.background='#FEF0EA';
-    lbl.onmouseleave=()=>lbl.style.background='';
-    lbl.onclick=()=>openMonthModal(mes,y,yData[mes],dp,dr);
-    lblRow.appendChild(lbl);
-  });
-  main.appendChild(lblRow);
-  main.appendChild(Object.assign(document.createElement('div'),{style:'font-size:9px;color:#C8C8C8;margin-top:4px;text-align:right;font-style:italic',textContent:'cada grupo = uma semana · clique no mês para expandir · clique na barra para detalhar'}));
-  flex.appendChild(main); body.appendChild(flex); return body;
+    wrap.appendChild(yAxis);
+
+    const main=document.createElement('div');
+    main.style.cssText='flex:1;min-width:0;overflow-x:auto';
+
+    // Bars container
+    const barsArea=document.createElement('div');
+    barsArea.style.cssText=`display:flex;align-items:flex-end;border-bottom:2px solid #E8E8E8;height:${chartH}px;position:relative;gap:0`;
+
+    // Grid lines
+    const gl=document.createElement('div');
+    gl.style.cssText='position:absolute;left:0;right:0;top:0;bottom:0;display:flex;flex-direction:column;justify-content:space-between;pointer-events:none;z-index:0';
+    [0,1,2,3,4].forEach(()=>{const l=document.createElement('div');l.style.cssText='border-top:1px solid #F3F3F3;width:100%';gl.appendChild(l);});
+    barsArea.appendChild(gl);
+
+    // Week labels row (one label per week, aligned under bars)
+    const weekLabelRow=document.createElement('div');
+    weekLabelRow.style.cssText='display:flex;align-items:flex-start;margin-top:2px';
+
+    // Month label row
+    const monthLabelRow=document.createElement('div');
+    monthLabelRow.style.cssText='display:flex;margin-top:2px';
+
+    monthKeys.forEach((mes,mIdx)=>{
+      const sems=Object.keys(yData[mes]||{}).sort();
+      const isAlt=mIdx%2===1;
+
+      // ── Month column: full-height background, no left padding gap ──
+      const mc=document.createElement('div');
+      mc.style.cssText=`display:flex;align-items:flex-end;flex:1;min-width:0;
+        border-right:2px solid ${isAlt?'#E0B090':'#D8D8D8'};
+        position:relative;height:100%;
+        ${isAlt?'background:'+MONTH_BG_ALT:''}`;
+
+      // Week groups with white gap between them
+      const weeksWrap=document.createElement('div');
+      weeksWrap.style.cssText='display:flex;align-items:flex-end;justify-content:center;gap:6px;width:100%;height:100%;position:relative;z-index:1;padding:0 4px';
+
+      // Week label sub-row for this month
+      const mWeekLbls=document.createElement('div');
+      mWeekLbls.style.cssText='display:flex;flex:1;justify-content:center;gap:6px;padding:0 4px';
+
+      sems.forEach(sem=>{
+        const d=yData[mes][sem];
+        const pTot=Math.abs(d.pv)+Math.abs(d.pa);
+        const rTot=d.rv+d.ra;
+        const sal=rTot-pTot;
+        const pH=halfMax>0?Math.max(2,Math.round(pTot/halfMax*(chartH-4))):0;
+        const rH=halfMax>0?Math.max(0,Math.round(rTot/halfMax*(chartH-4))):0;
+        const sH=halfMax>0?Math.max(2,Math.round(Math.abs(sal)/halfMax*(chartH-4))):0;
+        const pvH=pTot>0?Math.round(Math.abs(d.pv)/pTot*pH):0;
+        const rvH=rTot>0?Math.round(d.rv/rTot*rH):0;
+
+        // Bar group wrapper — gives each week a contained block
+        const grp=document.createElement('div');
+        grp.style.cssText='display:flex;gap:2px;align-items:flex-end;cursor:pointer';
+        grp.title=semLabelBiz(sem);
+
+        if(pTot>0){
+          const pb=document.createElement('div');
+          pb.style.cssText=`width:${BAR_W}px;height:${pH}px;display:flex;flex-direction:column;justify-content:flex-end;cursor:pointer`;
+          pb.innerHTML=`<div style="width:100%;height:${pH-pvH}px;background:${C.pagarAvenc};border-radius:${pH-pvH>0?'2px 2px':'0'} 0 0"></div><div style="width:100%;height:${pvH}px;background:${C.pagarVenc}"></div>`;
+          pb.title=`Pagar ${semLabel(sem)}: ${fmtNeg(d.pv+d.pa)}`;
+          pb.onclick=e=>{e.stopPropagation();openDetailTab(sem,'pagar',dp);};
+          grp.appendChild(pb);
+        }
+        if(rTot>0){
+          const rb=document.createElement('div');
+          rb.style.cssText=`width:${BAR_W}px;height:${rH}px;display:flex;flex-direction:column;justify-content:flex-end;cursor:pointer`;
+          rb.innerHTML=`<div style="width:100%;height:${rH-rvH}px;background:${C.recAvenc};border-radius:${rH-rvH>0?'2px 2px':'0'} 0 0"></div><div style="width:100%;height:${rvH}px;background:${C.recVenc}"></div>`;
+          rb.title=`Receber ${semLabel(sem)}: ${fmtPos(rTot)}`;
+          rb.onclick=e=>{e.stopPropagation();openDetailTab(sem,'receber',dr);};
+          grp.appendChild(rb);
+        }
+        if(Math.abs(sal)>0){
+          const sb=document.createElement('div');
+          sb.style.cssText=`width:8px;height:${sH}px;background:${sal>=0?C.saldoPos:C.saldoNeg};border-radius:2px 2px 0 0`;
+          sb.title=`Saldo ${semLabel(sem)}: ${sal>=0?fmtPos(sal):fmtNeg(sal)}`;
+          grp.appendChild(sb);
+        }
+        weeksWrap.appendChild(grp);
+
+        // Week start label, same width+gap as the bar group
+        const wLbl=document.createElement('div');
+        const semStart=sem.split('/')[0].split('-');
+        wLbl.style.cssText=`font-size:7.5px;color:#AAA;text-align:center;white-space:nowrap;flex:1`;
+        wLbl.textContent=semStart[2]+'/'+semStart[1];
+        mWeekLbls.appendChild(wLbl);
+      });
+
+      mc.appendChild(weeksWrap);
+      barsArea.appendChild(mc);
+
+      // Month background covers full height — already set on mc
+      // Week labels for this month
+      const mwWrap=document.createElement('div');
+      mwWrap.style.cssText='display:flex;flex:1';
+      mwWrap.appendChild(mWeekLbls);
+      weekLabelRow.appendChild(mwWrap);
+
+      // Month label
+      const mLbl=document.createElement('div');
+      mLbl.className='month-lbl';
+      mLbl.style.cssText='flex:1;text-align:center';
+      const mNum=parseInt(mes.split('-')[1]);
+      mLbl.textContent=MONTH_NAMES_LOCAL[mNum-1];
+      mLbl.title='Ver detalhamento de '+MONTH_NAMES_LOCAL[mNum-1];
+      mLbl.onclick=()=>openMonthModal(mes,y,yData[mes],dp,dr);
+      monthLabelRow.appendChild(mLbl);
+    });
+
+    main.appendChild(barsArea);
+    main.appendChild(weekLabelRow);
+    main.appendChild(monthLabelRow);
+    wrap.appendChild(main);
+    return wrap;
+  }
+
+  const allMonths=Object.keys(yData).sort();
+  const h1=allMonths.filter(m=>parseInt(m.split('-')[1])<=6);
+  const h2=allMonths.filter(m=>parseInt(m.split('-')[1])>6);
+
+  if(h1.length){
+    const label=document.createElement('div');
+    label.style.cssText='font-size:9px;font-weight:700;color:#E8521A;text-transform:uppercase;letter-spacing:.5px;padding:8px 0 2px 48px';
+    label.textContent='1º Semestre';
+    body.appendChild(label);
+    body.appendChild(buildHalf(h1));
+  }
+  if(h2.length){
+    const label=document.createElement('div');
+    label.style.cssText='font-size:9px;font-weight:700;color:#E8521A;text-transform:uppercase;letter-spacing:.5px;padding:10px 0 2px 48px';
+    label.textContent='2º Semestre';
+    body.appendChild(label);
+    body.appendChild(buildHalf(h2));
+  }
+  const hint=Object.assign(document.createElement('div'),{style:'font-size:9px;color:#C8C8C8;margin-top:4px;text-align:right;font-style:italic;padding-right:8px',textContent:'cada grupo = uma semana · clique no mês para expandir · clique na barra para detalhar'});
+  body.appendChild(hint);
+  return body;
 }
 
 // ── Month modal
@@ -944,7 +1059,7 @@ function openMonthModal(mes,ano,mesData,dp,dr){
   sems.forEach((sem,idx)=>{
     const d=mesData[sem]; const pTot=d.pv+d.pa; const rTot=d.rv+d.ra; const sal=rTot+pTot;
     const tr=document.createElement('tr'); tr.dataset.sal=sal;
-    tr.innerHTML=`<td style="font-weight:600;cursor:pointer;color:#E8521A;text-decoration:underline" onclick="openDayModal('${sem}','${mes}',${ano})"">${semLabel(sem)}</td>
+    tr.innerHTML=`<td style="font-weight:600;cursor:pointer;color:#E8521A;text-decoration:underline" onclick="openDayModal('${sem}','${mes}',${ano})"">${effSemLabel(sem,window._modalDp,window._modalDr)}</td>
       <td class="tr" style="color:#7F1D1D">${fmtNeg(d.pv)}</td>
       <td class="tr" style="color:#DC2626">${fmtNeg(d.pa)}</td>
       <td class="tr" style="font-weight:700;color:#7F1D1D">${fmtNeg(pTot)}</td>
@@ -973,7 +1088,7 @@ function openMonthModal(mes,ano,mesData,dp,dr){
     <td class="tr" style="font-weight:700;color:#1E3A8A">${fmtPos(totR)}</td>
     <td class="tr" style="font-weight:700;color:${totSal>=0?'#2563EB':'#EF4444'}">${totSal>=0?fmtPos(totSal):fmtNeg(totSal)}</td>
     <td class="tr" style="color:#6B7280">—</td>
-    <td style="white-space:nowrap"><button class="btn-xs" onclick="openDetailTab('${mes}-total','pagar',currentDashboard==='pagas'?AGG_PAGAS_DATA.filter(r=>r.m==='${mes}').map(r=>({valor:r.t,status:'PAGO',semana:r.s,mes:r.m,ano:r.a,fornecedor:Object.keys(r.f||{})[0]||'',empresa:Object.keys(r.e||{})[0]||''})):(window._modalDp||[]).filter(r=>r.mes==='${mes}'))">${currentDashboard==='pagas'?'Pagas':'Pagar'}</button> <button class="btn-xs" onclick="openDetailTab('${mes}-total','receber',currentDashboard==='pagas'?AGG_RECEBIDAS_DATA.filter(r=>r.m==='${mes}').map(r=>({valor:r.t,status:'RECEBIDO',semana:r.s,mes:r.m,ano:r.a,cliente:Object.keys(r.f||{})[0]||'',empresa:Object.keys(r.e||{})[0]||''})):(window._modalDr||[]).filter(r=>r.mes==='${mes}'))">${currentDashboard==='pagas'?'Recebidas':'Receber'}</button></td>`;
+    <td style="white-space:nowrap"><button class="btn-xs" onclick="openMonthRows('${mes}','pagar')">Pagar</button> <button class="btn-xs" onclick="openMonthRows('${mes}','receber')">Receber</button></td>`;
   tb.appendChild(trTot);
   tbl.appendChild(tb); tw.appendChild(tbl); body.appendChild(tw);
   // função para recalcular saldo acumulado no modal do mês
@@ -1003,7 +1118,10 @@ function closeModalDirect(){document.getElementById('modal-overlay').classList.r
 function openDetailTab(semana,tipo,rows){
   const filtered=rows.filter(r=>r.semana===semana);
   if(!filtered.length)return;
-  const title=(tipo==='pagar'?'C. Pagar — ':'C. Receber — ')+'Semana '+semLabel(semana);
+  // Show effective date range from actual records (adjusted dates)
+  const sortedDates=filtered.map(r=>r.data).filter(Boolean).sort();
+  const effLabel=semLabelBiz(semana);
+  const title=(tipo==='pagar'?'C. Pagar — ':'C. Receber — ')+'Semana '+effLabel;
   const tot=filtered.reduce((s,r)=>s+r.valor,0);
   const w=window.open('','_blank');
   w.document.write(buildDetailHTML(filtered,title,tot,tipo));
@@ -1038,7 +1156,7 @@ function buildDetailHTML(rows,title,tot,tipo){
     const vAbs=Math.abs(r.valor).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
     const vDisplay=isPagar?'(R$ '+vAbs+')':'R$ '+vAbs;
     const nome=isPagar?r.fornecedor:r.cliente;
-    return `<tr><td>${r.empresa}</td><td>${nome||''}</td><td>${r.documento||''}</td><td>${r.tipo_doc||''}</td><td>${d2}</td><td>${r.mes}</td><td style="text-align:center">${r.ano}</td><td><span style="background:${sBg};color:${sFg};border-radius:3px;padding:1px 5px;font-size:10px;font-weight:700">${sLbl}</span></td><td style="text-align:right;color:${accent};font-weight:600">${vDisplay}</td></tr>`;
+    return `<tr><td>${r.empresa}</td><td>${nome||''}</td><td>${r.documento||''}</td><td>${r.tipo_doc||''}</td>${isPagar?'<td>'+(r.titulo||'')+'</td><td>'+(r.plano_fin||'')+'</td>':''}<td>${d2}</td><td>${r.mes}</td><td style="text-align:center">${r.ano}</td><td><span style="background:${sBg};color:${sFg};border-radius:3px;padding:1px 5px;font-size:10px;font-weight:700">${sLbl}</span></td><td style="text-align:right;color:${accent};font-weight:600">${vDisplay}</td></tr>`;
   }).join('');
   const totVenc=rows.filter(r=>r.status==='VENCIDO').reduce((s,r)=>s+r.valor,0);
   const totAvenc=rows.filter(r=>r.status!=='VENCIDO').reduce((s,r)=>s+r.valor,0);
@@ -1074,14 +1192,14 @@ td{padding:5px 9px;border-bottom:1px solid #F5F5F5;color:#444}tr:last-child td{b
   <span class="count" id="count">${rows.length} registros</span>
 </div>
 <div class="tbl-wrap"><div class="tbl-inner"><div class="scroll">
-<table><thead><tr><th>Empresa</th><th>${isPagar?'Fornecedor':'Cliente'}</th><th>Documento</th><th>Tipo</th><th>Vencimento</th><th>Mês</th><th>Ano</th><th>Status</th><th style="text-align:right">Valor</th></tr></thead>
+<table><thead><tr><th>Empresa</th><th>${isPagar?'Fornecedor':'Cliente'}</th><th>Documento</th><th>Tipo</th>${isPagar?'<th>Título</th><th>Plano Financeiro</th>':''}<th>Vencimento</th><th>Mês</th><th>Ano</th><th>Status</th><th style="text-align:right">Valor</th></tr></thead>
 <tbody id="tbody">${tableRows}</tbody></table></div></div></div>
 <div class="foot">Total: ${fv(tot)} | ${rows.length} lançamentos</div>
 <script>
 const ALL_ROWS=${rowsJSON};
 const fmtDateJS=s=>s?s.split('-').reverse().join('/'):'';
 function filterRows(q){const trs=document.getElementById('tbody').querySelectorAll('tr');let v=0;trs.forEach((tr,i)=>{const r=ALL_ROWS[i];const m=!q||[r.empresa,r.fornecedor||r.cliente||'',r.documento,r.tipo_doc].join(' ').toLowerCase().includes(q.toLowerCase());tr.style.display=m?'':'none';if(m)v++;});document.getElementById('count').textContent=v+' de '+ALL_ROWS.length+' registros';}
-function exportXLSX(){const wb=XLSX.utils.book_new();const nomeCol=ALL_ROWS.length>0&&ALL_ROWS[0].cliente?'Cliente':'Fornecedor';const data=[['Empresa',nomeCol,'Documento','Tipo','Vencimento','Mês','Ano','Status','Valor (R$)']];ALL_ROWS.forEach(r=>data.push([r.empresa,r.fornecedor||r.cliente||'',r.documento,r.tipo_doc,fmtDateJS(r.data),r.mes,r.ano,r.status,r.valor]));const ws=XLSX.utils.aoa_to_sheet(data);ws['!cols']=[28,38,18,8,12,8,6,12,14].map(w=>({wch:w}));XLSX.utils.book_append_sheet(wb,ws,'Detalhamento');XLSX.writeFile(wb,'detalhamento.xlsx');}
+function exportXLSX(){const wb=XLSX.utils.book_new();const nomeCol=ALL_ROWS.length>0&&ALL_ROWS[0].cliente?'Cliente':'Fornecedor';const data=[['Empresa',nomeCol,'Documento','Tipo',...(nomeCol==='Fornecedor'?['Título','Plano Financeiro']:[]),'Vencimento','Mês','Ano','Status','Valor (R$)']];ALL_ROWS.forEach(r=>data.push([r.empresa,r.fornecedor||r.cliente||'',r.documento,r.tipo_doc,...(nomeCol==='Fornecedor'?[r.titulo||'',r.plano_fin||'']:[]),fmtDateJS(r.data),r.mes,r.ano,r.status,r.valor]));const ws=XLSX.utils.aoa_to_sheet(data);ws['!cols']=[28,38,18,8,12,8,6,12,14].map(w=>({wch:w}));XLSX.utils.book_append_sheet(wb,ws,'Detalhamento');XLSX.writeFile(wb,'detalhamento.xlsx');}
 <\/script>
 </div>
 </body></html>`;
@@ -1089,6 +1207,7 @@ function exportXLSX(){const wb=XLSX.utils.book_new();const nomeCol=ALL_ROWS.leng
 
 // ── Fornecedores / Clientes
 function renderFornAberto(dp){
+  if(!document.getElementById('forn-body')) return;
   const tot=dp.reduce((s,r)=>s+r.valor,0);
   const agg={};
   dp.forEach(r=>{if(!agg[r.fornecedor])agg[r.fornecedor]={emp:r.empresa,v:0,a:0,tot:0,c:0};r.status==='VENCIDO'?agg[r.fornecedor].v+=r.valor:agg[r.fornecedor].a+=r.valor;agg[r.fornecedor].tot+=r.valor;agg[r.fornecedor].c++;});
@@ -1123,6 +1242,7 @@ function updateAll(){
   var dp=filteredPagar(), dr=filteredReceber();
   renderPlanoDash(dp, dr);
   renderClientesAberto(dr);
+  renderFornAberto(dp);
 }
 
 // ── Base
@@ -1275,6 +1395,7 @@ function parseNovoCSVPagar(text) {
       const _eff0=adjustDueDate(dtVenc);
       const _pts0=_eff0.split('-');
       map[key]={
+        titulo,
         empresa, fornecedor:nomeCredor,
         obra:descObra||'',
         documento:codDoc, tipo_doc:nomeDoc||codDoc||'OUTROS',
@@ -1315,6 +1436,19 @@ function renderPlanoDash(dp, dr) {
   el('kpf-avenc-q').textContent=dp.filter(r=>r.status==='A VENCER').length+' títulos';
   el('kpf-forn').textContent=new Set(dp.map(r=>r.fornecedor)).size;
 
+  // Receber KPIs
+  const _el=id=>document.getElementById(id);
+  const rTot=dr.reduce((s,r)=>s+r.valor,0);
+  const rVenc=dr.filter(r=>r.status==='VENCIDO').reduce((s,r)=>s+r.valor,0);
+  const rAvenc=dr.filter(r=>r.status!=='VENCIDO').reduce((s,r)=>s+r.valor,0);
+  if(_el('kpr-total')){_el('kpr-total').textContent=fmtPos(rTot);}
+  if(_el('kpr-qtd')){_el('kpr-qtd').textContent=dr.length+' títulos';}
+  if(_el('kpr-venc')){_el('kpr-venc').textContent=fmtPos(rVenc);}
+  if(_el('kpr-venc-q')){_el('kpr-venc-q').textContent=dr.filter(r=>r.status==='VENCIDO').length+' títulos';}
+  if(_el('kpr-avenc')){_el('kpr-avenc').textContent=fmtPos(rAvenc);}
+  if(_el('kpr-avenc-q')){_el('kpr-avenc-q').textContent=dr.filter(r=>r.status!=='VENCIDO').length+' títulos';}
+  if(_el('kpr-cli')){_el('kpr-cli').textContent=new Set(dr.map(r=>r.cliente)).size;}
+
   // Year cards (reuse same logic, different container)
   const container=el('plano-year-cards'); if(!container)return;
   container.innerHTML='';
@@ -1334,8 +1468,9 @@ function renderPlanoDash(dp, dr) {
     const hdr=document.createElement('div');hdr.className='year-hdr';
     hdr.innerHTML='<div class="year-title">'+y+'</div><div class="year-stats"><div class="ys p">Pagar: '+fmtNeg(pTot)+'</div><div class="ys r">Receber: '+fmtPos(rTot)+'</div><div class="ys '+(saldo>=0?'s-pos':'s-neg')+'">Saldo: '+(saldo>=0?fmtPos(saldo):fmtNeg(saldo))+'</div></div><div class="year-toggle">▼</div>';
     const body=buildYearBody(y,yData,yMax,dp,dr);
-    body.style.display='';
-    hdr.onclick=()=>{const show=body.style.display==='none';body.style.display=show?'':'none';hdr.querySelector('.year-toggle').textContent=show?'▼':'▶';};
+    body.style.display='none';
+    hdr.querySelector('.year-toggle').textContent='▼';
+    hdr.onclick=()=>{const show=body.style.display==='none';body.style.display=show?'':'none';hdr.querySelector('.year-toggle').textContent=show?'▲':'▼';};
     card.appendChild(hdr);card.appendChild(body);container.appendChild(card);
   });
 
@@ -1377,7 +1512,7 @@ function buildPlanoYearBody(y,yData,yMax,dp,ano){
         const pb=document.createElement('div');
         pb.style.cssText=`width:${BAR_W}px;height:${pH}px;display:flex;flex-direction:column;justify-content:flex-end;cursor:pointer`;
         pb.innerHTML=`<div style="width:100%;height:${pH-pvH}px;background:#FCA5A5;border-radius:${pH-pvH>0?'2px 2px':'0'} 0 0"></div><div style="width:100%;height:${pvH}px;background:#7F1D1D"></div>`;
-        pb.title=`Pagar ${semLabel(sem)}: ${fmtNeg(d.pv+d.pa)}`;
+        pb.title=`Pagar ${effSemLabel(sem,window._modalDp,window._modalDr)}: ${fmtNeg(d.pv+d.pa)}`;
         pb.onclick=e=>{e.stopPropagation();openDetailTab(sem,'pagar',dp);};
         grp.appendChild(pb);
       }
@@ -1515,7 +1650,7 @@ function parseXLSX(rows,tipo){
         if(!valor)continue;
         const status=currentDate<todayISO?'VENCIDO':'A VENCER';
         const parts=currentDate.split('-');const mes=parts[0]+'-'+parts[1];const ano=parseInt(parts[0]);
-        data.push({empresa:empresa||'',fornecedor:c0,obra:'',documento:c15,tipo_doc:getTipo(c15),
+        data.push({titulo:'',empresa:empresa||'',fornecedor:c0,obra:'',documento:c15,tipo_doc:getTipo(c15),
           data:currentDate,semana:getSemana(currentDate),mes,ano,valor:-Math.abs(valor),status});
       } else {
         const c4=String(row[4]||'').trim();
@@ -1530,7 +1665,7 @@ function parseXLSX(rows,tipo){
         valor=-Math.abs(valor);
         const status=_eff1<todayISO?'VENCIDO':'A VENCER';
         const parts=dateStr.split('-');const mes=parts[0]+'-'+parts[1];const ano=parseInt(parts[0]);
-        data.push({empresa:empresa||'',fornecedor:c0,obra:c4.replace(/\n/g,'').trim(),documento:c14,
+        data.push({titulo:'',empresa:empresa||'',fornecedor:c0,obra:c4.replace(/\n/g,'').trim(),documento:c14,
           tipo_doc:getTipo(c14),data:dateStr,semana:getSemana(dateStr),mes,ano,valor,status});
       }
     }
@@ -1780,7 +1915,7 @@ function initProfilesPR() {
 function exportBaseExcel(t) {
   let rows = [], headers = [], filename = 'base';
   if (t === 'p') {
-    headers = ['Empresa','Fornecedor','Obra/Centro','Documento','Tipo','Plano Financeiro','Vencimento','Mes','Ano','Status','Valor'];
+    headers = ['Empresa','Fornecedor','Obra/Centro','Documento','Tipo','Título','Plano Financeiro','Vencimento','Mes','Ano','Status','Valor'];
     filename = 'base_contas_pagar';
     const q = (document.getElementById('bsp')||{value:''}).value.toLowerCase();
     const st = (document.getElementById('bst-p')||{value:''}).value;
@@ -1790,7 +1925,7 @@ function exportBaseExcel(t) {
       if (tp && r.tipo_doc !== tp) return false;
       if (q && ![r.empresa,r.fornecedor,r.obra,r.documento].join(' ').toLowerCase().includes(q)) return false;
       return true;
-    }).map(r => [r.empresa,r.fornecedor,r.obra||'',r.documento,r.tipo_doc,r.plano_fin||'',fmtDate(r.data),r.mes,r.ano,r.status,r.valor]);
+    }).map(r => [r.empresa,r.fornecedor,r.obra||'',r.documento,r.tipo_doc,r.titulo||'',r.plano_fin||'',fmtDate(r.data),r.mes,r.ano,r.status,r.valor]);
   } else if (t === 'r') {
     headers = ['Empresa','Cliente','Documento','Tipo','Vencimento','Mes','Ano','Status','Valor'];
     filename = 'base_contas_receber';
@@ -2189,6 +2324,166 @@ function openDayModal(sem, mes, ano) {
   };
 
   modal.classList.add('open');
+}
+
+
+// ── KPI Detail Modal (clique no KPI → breakdown por fornecedor) ──────────
+function openKpiDetail(tipo, filter) {
+  const isReceber = tipo === 'receber';
+  const dp = isReceber ? filteredReceber() : filteredPagar();
+  let rows, label;
+  if (filter === 'vencido') {
+    rows = dp.filter(r => r.status === 'VENCIDO');
+    label = (isReceber?'Receber':'Pagar') + ' — Vencido';
+  } else if (filter === 'avencer') {
+    rows = dp.filter(r => r.status === 'A VENCER');
+    label = 'Pagar — A Vencer';
+  } else if (filter === 'areceber') {
+    rows = dp.filter(r => r.status === 'A RECEBER');
+    label = 'Receber — A Receber';
+  } else {
+    rows = dp;
+    label = (isReceber?'Receber':'Pagar') + ' — Total';
+  }
+  const tot = rows.reduce((s,r)=>s+r.valor,0);
+  openDetailTabDirect(rows, label, tot, isReceber?'receber':'pagar');
+}
+
+function openKpiDetail_UNUSED(tipo, filter) {
+  const isReceber = tipo === 'receber';
+  const dp = isReceber ? filteredReceber() : filteredPagar();
+  let rows;
+  let label;
+  if (filter === 'vencido') {
+    rows = dp.filter(r => r.status === 'VENCIDO');
+    label = (isReceber ? 'Receber' : 'Pagar') + ' — Vencido';
+  } else if (filter === 'avencer') {
+    rows = dp.filter(r => r.status === 'A VENCER');
+    label = 'Pagar — A Vencer';
+  } else if (filter === 'areceber') {
+    rows = dp.filter(r => r.status === 'A RECEBER');
+    label = 'Receber — A Receber';
+  } else {
+    rows = dp;
+    label = (isReceber ? 'Receber' : 'Pagar') + ' — Total';
+  }
+
+  const nomeKey = isReceber ? 'cliente' : 'fornecedor';
+  const nomeLabel = isReceber ? 'Cliente' : 'Fornecedor';
+  const accent = isReceber ? '#1E3A8A' : '#7F1D1D';
+  const statusLabel = isReceber ? 'A Receber' : 'A Vencer';
+  const statusKey = isReceber ? 'A RECEBER' : 'A VENCER';
+
+  // Aggregate by cliente or fornecedor
+  const agg = {};
+  rows.forEach(r => {
+    const nome = r[nomeKey] || '—';
+    if (!agg[nome]) agg[nome] = {emp: r.empresa, v:0, a:0, tot:0, c:0, plano: r.plano_fin||''};
+    r.status==='VENCIDO' ? agg[nome].v += r.valor : agg[nome].a += r.valor;
+    agg[nome].tot += r.valor;
+    agg[nome].c++;
+  });
+  const sorted = Object.entries(agg).sort((a,b) => isReceber ? b[1].tot - a[1].tot : a[1].tot - b[1].tot);
+  const total = rows.reduce((s,r)=>s+r.valor,0);
+
+  const w = window.open('','_blank');
+  const aggJSON = JSON.stringify(sorted);
+  const tableRows = sorted.map(([f,o]) =>
+    `<tr>
+      <td style="color:#7F1D1D;text-decoration:underline;cursor:pointer" onclick="filterForn('${f.replace(/'/g,"\'")}')">${f}</td>
+      <td>${(o.emp||'').split(' - ')[0]}</td>
+      <td>${o.plano}</td>
+      <td style="text-align:center">${o.c}</td>
+      <td style="text-align:right;color:#7F1D1D">${o.v?fmtNeg(o.v):'-'}</td>
+      <td style="text-align:right;color:#DC2626">${o.a?fmtNeg(o.a):'-'}</td>
+      <td style="text-align:right;font-weight:700;color:#7F1D1D">${fmtNeg(o.tot)}</td>
+    </tr>`
+  ).join('');
+
+  w.document.write(`<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8">
+<title>${label}</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"><\/script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}body{font-family:'Segoe UI',Arial,sans-serif;background:#F7F7F7;font-size:12px}
+.top{background:#7F1D1D;color:#fff;padding:12px 18px;display:flex;align-items:center;justify-content:space-between}
+.top h1{font-size:14px;font-weight:700}.top span{font-size:11px;opacity:.8}
+.kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;padding:10px 18px}
+.kpi{background:#fff;border-radius:7px;padding:9px 12px;border:1px solid #E5E5E5;border-left:3px solid #7F1D1D}
+.kpi-label{font-size:9px;color:#888;text-transform:uppercase;margin-bottom:2px}
+.kpi-value{font-size:15px;font-weight:700;color:#7F1D1D}
+.toolbar{display:flex;align-items:center;gap:8px;padding:8px 18px;background:#fff;border-bottom:1px solid #E5E5E5}
+.btn{background:#7F1D1D;color:#fff;border:none;border-radius:5px;padding:7px 14px;font-size:11px;cursor:pointer;font-weight:600}
+.btn:hover{opacity:.85}.search{padding:5px 9px;border:1px solid #E0E0E0;border-radius:5px;font-size:11px;width:260px}
+.count{font-size:10px;color:#888}
+.tbl-wrap{padding:12px 18px}.tbl-inner{background:#fff;border-radius:7px;border:1px solid #E5E5E5;overflow:hidden}
+.scroll{overflow-x:auto;max-height:calc(100vh - 210px);overflow-y:auto}
+table{width:100%;border-collapse:collapse;font-size:11px}
+th{background:#FEF0EA;padding:7px 9px;text-align:left;font-weight:700;color:#7F1D1D;border-bottom:1px solid #FADDCF;white-space:nowrap;position:sticky;top:0}
+td{padding:5px 9px;border-bottom:1px solid #F5F5F5;color:#444}tr:last-child td{border-bottom:none}tr:hover td{background:#FEF0EA}
+.foot{background:#FEF0EA;border-top:1px solid #FADDCF;padding:8px 18px;font-size:11px;font-weight:700;text-align:right;color:#7F1D1D}
+</style></head><body>
+<div class="top"><h1>${label}</h1><span>${sorted.length} fornecedores · ${rows.length} títulos</span></div>
+<div class="kpis">
+  <div class="kpi"><div class="kpi-label">Total</div><div class="kpi-value">${fmtNeg(total)}</div></div>
+  <div class="kpi"><div class="kpi-label">Vencido</div><div class="kpi-value">${fmtNeg(rows.filter(r=>r.status==='VENCIDO').reduce((s,r)=>s+r.valor,0))}</div></div>
+  <div class="kpi"><div class="kpi-label">A Vencer</div><div class="kpi-value">${fmtNeg(rows.filter(r=>r.status!=='VENCIDO').reduce((s,r)=>s+r.valor,0))}</div></div>
+</div>
+<div class="toolbar">
+  <button class="btn" onclick="exportXLSX()">⬇ Exportar Excel</button>
+  <input class="search" id="srch" placeholder="Buscar fornecedor..." oninput="doFilter(this.value)">
+  <span class="count" id="cnt">${sorted.length} fornecedores</span>
+</div>
+<div class="tbl-wrap"><div class="tbl-inner"><div class="scroll">
+<table><thead><tr>
+  ${nomeLabel}<\/th><th>Emp.<\/th>${isReceber?'':`<th>Plano Fin.<\/th>`}<th style="text-align:center">#<\/th><th style="text-align:right">Vencido<\/th><th style="text-align:right">${statusLabel}<\/th><th style="text-align:right">Total<\/th>
+</tr></thead><tbody id="tbody">${tableRows}</tbody></table>
+</div></div></div>
+<div class="foot">Total: ${fmtNeg(total)} · ${sorted.length} fornecedores · ${rows.length} títulos</div>
+<script>
+const AGG=${aggJSON};
+function doFilter(q){
+  const trs=document.getElementById('tbody').querySelectorAll('tr');
+  let v=0;
+  trs.forEach((tr,i)=>{
+    const show=!q||AGG[i][0].toLowerCase().includes(q.toLowerCase())||(AGG[i][1].plano||'').toLowerCase().includes(q.toLowerCase());
+    tr.style.display=show?'':'none';if(show)v++;
+  });
+  document.getElementById('cnt').textContent=v+' fornecedores';
+}
+function exportXLSX(){
+  const wb=XLSX.utils.book_new();
+  const data=[['Fornecedor','Empresa','Plano Financeiro','#','Vencido (R$)','A Vencer (R$)','Total (R$)']];
+  AGG.forEach(([f,o])=>data.push([f,(o.emp||''),(o.plano||''),o.c,
+    parseFloat(String(o.v).replace(/[^0-9,-]/g,'').replace(',','.').replace(/\.(?=.*\.)/g,''))||o.v,
+    parseFloat(String(o.a).replace(/[^0-9,-]/g,'').replace(',','.').replace(/\.(?=.*\.)/g,''))||o.a,
+    parseFloat(String(o.tot).replace(/[^0-9,-]/g,'').replace(',','.').replace(/\.(?=.*\.)/g,''))||o.tot
+  ]));
+  // Use numeric values directly
+  const data2=[['Fornecedor','Empresa','Plano Financeiro','#','Vencido','A Vencer','Total']];
+  AGG.forEach(([f,o])=>data2.push([f,(o.emp||''),(o.plano||''),o.c,o.v,o.a,o.tot]));
+  const ws=XLSX.utils.aoa_to_sheet(data2);
+  ws['!cols']=[{wch:40},{wch:12},{wch:30},{wch:6},{wch:16},{wch:16},{wch:16}];
+  XLSX.utils.book_append_sheet(wb,ws,'Fornecedores');
+  XLSX.writeFile(wb,'kpi_fornecedores_${filter}_'+new Date().toLocaleDateString('pt-BR').replace(/\//g,'-')+'.xlsx');
+}
+<\/script></body></html>`);
+  w.document.close();
+}
+
+function openMonthRows(mes, tipo) {
+  var rows = tipo==='pagar'
+    ? (window._modalDp||[]).filter(function(r){return r.mes===mes;})
+    : (window._modalDr||[]).filter(function(r){return r.mes===mes;});
+  if(!rows.length){alert('Sem registros para '+mes);return;}
+  var tot = rows.reduce(function(s,r){return s+r.valor;},0);
+  openDetailTabDirect(rows, (tipo==='pagar'?'C. Pagar — ':'C. Receber — ')+'Total '+mes, tot, tipo);
+}
+
+function openDetailTabDirect(rows, title, tot, tipo) {
+  if(!rows||!rows.length){alert('Sem registros.');return;}
+  const w = window.open('','_blank');
+  w.document.write(buildDetailHTML(rows, title, tot, tipo));
+  w.document.close();
 }
 
 // Init assíncrono — aguarda dados externos
