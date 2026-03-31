@@ -2099,42 +2099,74 @@ function addUploadLog(tipo, name, count) {
 function exportarVersaoAtualizada() {
   const btn = event ? event.target : null;
   const origText = btn ? btn.textContent : '';
-  if (btn) { btn.textContent = '⏳ Processando...'; btn.disabled = true; }
-  // Safety: always re-enable after 30s
-  var _safetyTimer = setTimeout(function(){ if(btn){btn.textContent=origText;btn.disabled=false;} }, 30000);
-  // Use setTimeout so browser renders the button state before heavy work
+  if (btn) { btn.textContent = '⏳ Exportando...'; btn.disabled = true; }
+
+  // Use setTimeout so UI renders before heavy work
   setTimeout(function() {
-  try {
-    // Usa o HTML já em memória — funciona tanto em file:/// quanto em servidor
-    let src = '<!DOCTYPE html>\n' + document.documentElement.outerHTML;
+    try {
+      // Get the current HTML source
+      let src = '<!DOCTYPE html>\n' + document.documentElement.outerHTML;
 
-    // Injeta localStorage atualizado logo após <head>
-    const lsKeys = ['fin_auto_apr','fin_auto_pr','fin_profiles_apr','fin_profiles_pr'];
-    const lsData = {};
-    lsKeys.forEach(k => { const v = localStorage.getItem(k); if (v) lsData[k] = v; });
-    if (Object.keys(lsData).length > 0) {
-      const preload = '<scr'+'ipt>try{' +
-        Object.entries(lsData).map(([k,v]) => 'localStorage.setItem(' + JSON.stringify(k) + ',' + JSON.stringify(v) + ');').join('') +
-        'localStorage.setItem("fin_version","v14");}catch(e){}<'+'/script>';
-      src = src.replace('<head>', '<head>\n' + preload);
+      // ── Replace embedded data with current in-memory data ──────────
+      // Update __INITP__ with current RAW_PAGAR
+      src = src.replace(
+        /var __INITP__\s*=\s*\[[\s\S]*?\];/,
+        'var __INITP__ = ' + JSON.stringify(RAW_PAGAR) + ';'
+      );
+      // Update __INITR__ with current RAW_RECEBER
+      src = src.replace(
+        /var __INITR__\s*=\s*\[[\s\S]*?\];/,
+        'var __INITR__ = ' + JSON.stringify(RAW_RECEBER) + ';'
+      );
+      // Update __B64P__ with current b64 (if available)
+      if (curB64P) {
+        src = src.replace(
+          /var __B64P__\s*=\s*"[\s\S]*?";/,
+          'var __B64P__ = ' + JSON.stringify(curB64P) + ';'
+        );
+      }
+      // Update __B64R__ with current b64 (if available)
+      if (curB64R) {
+        src = src.replace(
+          /var __B64R__\s*=\s*"[\s\S]*?";/,
+          'var __B64R__ = ' + JSON.stringify(curB64R) + ';'
+        );
+      }
+
+      // ── Inject localStorage ────────────────────────────────────────
+      const lsKeys = ['fin_auto_apr','fin_profiles_apr'];
+      const lsData = {};
+      lsKeys.forEach(function(k) { const v = localStorage.getItem(k); if (v) lsData[k] = v; });
+      if (Object.keys(lsData).length > 0) {
+        const preload = '<scr'+'ipt>try{' +
+          Object.entries(lsData).map(function([k,v]) {
+            return 'localStorage.setItem(' + JSON.stringify(k) + ',' + JSON.stringify(v) + ');';
+          }).join('') +
+          'localStorage.setItem("fin_version","v14");}catch(e){}<'+'/script>';
+        src = src.replace('<head>', '<head>\n' + preload);
+      }
+
+      // ── Update reference date ──────────────────────────────────────
+      const today = new Date().toLocaleDateString('pt-BR');
+      src = src.replace(/>Ref\.\s*[\d\/]+</, '>Ref. ' + today + '<');
+
+      // ── Download ───────────────────────────────────────────────────
+      const blob = new Blob([src], { type: 'text/html;charset=utf-8' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = 'dashboard_v2.html';
+      a.click();
+      URL.revokeObjectURL(a.href);
+
+      if (btn) {
+        btn.textContent = '✓ Exportado!';
+        setTimeout(function() { btn.textContent = origText; btn.disabled = false; }, 2000);
+      }
+    } catch(e) {
+      if (btn) { btn.textContent = origText; btn.disabled = false; }
+      alert('Erro ao exportar: ' + e.message);
     }
-
-    // Atualiza data de referência
-    const today = new Date().toLocaleDateString('pt-BR');
-    src = src.replace(/>Ref\.\s*[\d/]+</, '>Ref. ' + today + '<');
-
-    const blob = new Blob([src], { type: 'text/html;charset=utf-8' });
-    const a = document.createElement('a');
-    a.href = URL.createObjectURL(blob);
-    a.download = 'index.html';
-    a.click();
-    URL.revokeObjectURL(a.href);
-    clearTimeout(_safetyTimer); if (btn) { btn.textContent = '✓ Exportado!'; setTimeout(() => { btn.textContent = origText; btn.disabled = false; }, 2000); }
-  } catch(e) {
-    clearTimeout(_safetyTimer); if (btn) { btn.textContent = origText; btn.disabled = false; }
-    alert('Erro ao exportar: ' + e.message);
-  }
-  }, 50); // end setTimeout
+  }, 80);
 }
 
 // ════════════════════════════════════
