@@ -187,7 +187,7 @@ tr:hover td{background:#FEF0EA}
     <div class="top-tab active" id="tt-apagar" onclick="switchDashboard('apagar',this)">A Pagar / A Receber</div>
   </div>
   <div class="nav-right" style="display:flex;align-items:center;gap:10px">
-    <button onclick="exportarVersaoAtualizada()" style="background: rgba(255, 255, 255, 0.25); color: rgb(255, 255, 255); border: 1px solid rgba(255, 255, 255, 0.3); border-radius: 5px; padding: 5px 10px; font-size: 10px; font-weight: 700; cursor: pointer; white-space: nowrap;" onmouseover="this.style.background='rgba(255,255,255,.25)'" onmouseout="this.style.background='rgba(255,255,255,.15)'" disabled="">⏳ Exportando...</button>
+    <button onclick="exportarVersaoAtualizada()" style="background: rgba(255, 255, 255, 0.25); color: rgb(255, 255, 255); border: 1px solid rgba(255, 255, 255, 0.3); border-radius: 5px; padding: 5px 10px; font-size: 10px; font-weight: 700; cursor: pointer; white-space: nowrap;" onmouseover="this.style.background='rgba(255,255,255,.25)'" onmouseout="this.style.background='rgba(255,255,255,.15)'">⬇ Exportar versão atualizada</button>
     <div class="nav-info"><strong id="nav-ref">Ref. 02/04/2026</strong><span id="nav-count">1 + 1 títulos</span></div>
   </div>
 </div>
@@ -2096,39 +2096,43 @@ function exportarVersaoAtualizada() {
   const origText = btn ? btn.textContent : '';
   if (btn) { btn.textContent = '⏳ Exportando...'; btn.disabled = true; }
 
-  // Use setTimeout so UI renders before heavy work
   setTimeout(function() {
     try {
-      // Get the current HTML source
       let src = '<!DOCTYPE html>\n' + document.documentElement.outerHTML;
 
-      // ── Replace embedded data with current in-memory data ──────────
-      // Update __INITP__ with current RAW_PAGAR
-      src = src.replace(
-        /var __INITP__\s*=\s*\[[\s\S]*?\];/,
-        'var __INITP__ = ' + JSON.stringify(RAW_PAGAR) + ';'
-      );
-      // Update __INITR__ with current RAW_RECEBER
-      src = src.replace(
-        /var __INITR__\s*=\s*\[[\s\S]*?\];/,
-        'var __INITR__ = ' + JSON.stringify(RAW_RECEBER) + ';'
-      );
-      // Update __B64P__ with current b64 (if available)
-      if (curB64P) {
-        src = src.replace(
-          /var __B64P__\s*=\s*"[\s\S]*?";/,
-          'var __B64P__ = ' + JSON.stringify(curB64P) + ';'
-        );
-      }
-      // Update __B64R__ with current b64 (if available)
-      if (curB64R) {
-        src = src.replace(
-          /var __B64R__\s*=\s*"[\s\S]*?";/,
-          'var __B64R__ = ' + JSON.stringify(curB64R) + ';'
-        );
+      // ── Replace data vars using fast string search (no regex on huge JSON) ──
+      function replaceVar(text, varName, newValue) {
+        var marker = 'var ' + varName + ' = ';
+        var start = text.indexOf(marker);
+        if (start === -1) return text;
+        start += marker.length;
+        // Find the end: walk char by char for balanced [] or ""
+        var c = text[start];
+        var end = start;
+        if (c === '[') {
+          var depth = 0;
+          for (var i = start; i < text.length; i++) {
+            if (text[i] === '[') depth++;
+            else if (text[i] === ']') { depth--; if (depth === 0) { end = i + 1; break; } }
+          }
+        } else if (c === '"') {
+          // JSON string — find closing quote respecting escapes
+          for (var i = start + 1; i < text.length; i++) {
+            if (text[i] === '\\') { i++; continue; }
+            if (text[i] === '"') { end = i + 1; break; }
+          }
+        }
+        // Skip trailing semicolon
+        if (text[end] === ';') end++;
+        return text.slice(0, start) + newValue + ';' + text.slice(end);
       }
 
-      // ── Inject localStorage ────────────────────────────────────────
+      src = replaceVar(src, '__INITP__', JSON.stringify(RAW_PAGAR));
+      src = replaceVar(src, '__INITR__', JSON.stringify(RAW_RECEBER));
+      if (curB64P) src = replaceVar(src, '__B64P__', JSON.stringify(curB64P));
+      if (curB64R) src = replaceVar(src, '__B64R__', JSON.stringify(curB64R));
+
+      // ── Inject localStorage ──────────────────────────────────────
       const lsKeys = ['fin_auto_apr','fin_profiles_apr'];
       const lsData = {};
       lsKeys.forEach(function(k) { const v = localStorage.getItem(k); if (v) lsData[k] = v; });
@@ -2141,15 +2145,20 @@ function exportarVersaoAtualizada() {
         src = src.replace('<head>', '<head>\n' + preload);
       }
 
-      // ── Update reference date ──────────────────────────────────────
+      // ── Update reference date ────────────────────────────────────
       const today = new Date().toLocaleDateString('pt-BR');
       src = src.replace(/>Ref\.\s*[\d\/]+</, '>Ref. ' + today + '<');
 
-      // ── Download ───────────────────────────────────────────────────
+      // ── Reset button state in exported HTML ────────────────────
+      // outerHTML captures the button while it's "Exportando..." — fix it
+      src = src.replace('⏳ Exportando...', origText);
+      src = src.replace(/(<button[^>]*exportarVersaoAtualizada[^>]*)[^>]*disabled[^>]*>/g, '$1>');
+
+      // ── Download ─────────────────────────────────────────────────
       const blob = new Blob([src], { type: 'text/html;charset=utf-8' });
       const a = document.createElement('a');
       a.href = URL.createObjectURL(blob);
-      a.download = 'dashboard_v2.html';
+      a.download = 'index.html';
       a.click();
       URL.revokeObjectURL(a.href);
 
