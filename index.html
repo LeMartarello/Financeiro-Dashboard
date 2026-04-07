@@ -192,20 +192,20 @@ body.sidebar-collapsed #main{margin-left:0;}
 
 /* ── KPI CARDS ───────────────────────────────────────────────── */
 .kpi-section-label{
-  font-size:9px;font-weight:600;color:var(--accent);text-transform:uppercase;
-  letter-spacing:1.2px;margin-bottom:8px;padding-left:2px;
+  font-size:8px;font-weight:600;color:var(--accent);text-transform:uppercase;
+  letter-spacing:1.2px;margin-bottom:5px;padding-left:2px;
   font-family:'DM Mono',monospace;
 }
-.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:10px;}
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;margin-bottom:7px;}
 .kpi{
   background:var(--surface);border:1px solid var(--border);
-  border-left:3px solid var(--border2);border-radius:var(--r-lg);
-  padding:14px 16px;box-shadow:var(--shadow);transition:box-shadow .15s;
+  border-left:3px solid var(--border2);border-radius:var(--r);
+  padding:9px 12px;box-shadow:var(--shadow);transition:box-shadow .15s;
 }
-.kpi:hover{box-shadow:0 2px 12px rgba(42,26,20,.1);}
-.kpi-label{font-size:9px;color:var(--ink3);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;font-family:'DM Mono',monospace;}
-.kpi-value{font-size:18px;font-weight:700;line-height:1.1;font-family:'DM Mono',monospace;letter-spacing:-.5px;}
-.kpi-sub{font-size:10px;color:var(--ink3);margin-top:3px;font-family:'Roboto',sans-serif;}
+.kpi:hover{box-shadow:0 2px 8px rgba(42,26,20,.1);}
+.kpi-label{font-size:8px;color:var(--ink3);text-transform:uppercase;letter-spacing:1px;margin-bottom:3px;font-family:'DM Mono',monospace;}
+.kpi-value{font-size:14px;font-weight:700;line-height:1.1;font-family:'DM Mono',monospace;letter-spacing:-.3px;}
+.kpi-sub{font-size:9px;color:var(--ink3);margin-top:2px;font-family:'Roboto',sans-serif;}
 .kpi.pt{border-left-color:var(--red);} .kpi.pt .kpi-value{color:var(--red);}
 .kpi.pv{border-left-color:#a03020;} .kpi.pv .kpi-value{color:#a03020;}
 .kpi.pa{border-left-color:#e07060;} .kpi.pa .kpi-value{color:#c05030;}
@@ -239,20 +239,21 @@ body.sidebar-collapsed #main{margin-left:0;}
 .panel-hdr{background:var(--surface2);border-bottom:1px solid var(--border);padding:8px 12px;display:flex;align-items:center;justify-content:space-between;}
 .panel-hdr h3{font-size:9px;font-weight:600;color:var(--accent);text-transform:uppercase;letter-spacing:.8px;font-family:'DM Mono',monospace;}
 .panel-hdr small{font-size:10px;color:var(--ink3);font-family:'DM Mono',monospace;}
-.panel-table-wrap{max-height:200px;overflow-y:auto;overflow-x:auto;}
+.panel-table-wrap{max-height:180px;overflow-y:auto;overflow-x:auto;font-size:11px;}
+.panel-table-wrap table{table-layout:fixed;}
 
 /* ── TABLES ──────────────────────────────────────────────────── */
-table{width:100%;border-collapse:collapse;font-size:12px;}
+table{width:100%;border-collapse:collapse;font-size:11px;}
 th{
-  position:sticky;top:0;background:var(--surface2);padding:6px 9px;
+  position:sticky;top:0;background:var(--surface2);padding:5px 7px;
   text-align:left;font-weight:600;color:var(--accent);border-bottom:1px solid var(--border);
-  white-space:nowrap;z-index:1;font-size:9px;text-transform:uppercase;
+  white-space:nowrap;z-index:1;font-size:8px;text-transform:uppercase;
   letter-spacing:.8px;font-family:'DM Mono',monospace;
 }
-td{padding:5px 9px;border-bottom:1px solid var(--border);color:var(--ink2);font-family:'DM Sans',sans-serif;}
+td{padding:4px 7px;border-bottom:1px solid var(--border);color:var(--ink2);font-family:'DM Sans',sans-serif;font-size:11px;}
 tr:last-child td{border-bottom:none;}
 tr:hover td{background:var(--surface2);}
-.tr{text-align:right;font-family:'DM Mono',monospace;font-size:11px;}
+.tr{text-align:right;font-family:'DM Mono',monospace;font-size:11px;white-space:nowrap;}
 .empty{padding:16px;text-align:center;color:var(--ink3);font-size:11px;font-family:'DM Sans',sans-serif;}
 
 /* ── MODAL ───────────────────────────────────────────────────── */
@@ -468,38 +469,38 @@ tr:hover td{background:var(--surface2);}
         <div class="kpi" style="border-left-color:var(--blue)"><div class="kpi-label">Inadimpl. Receber</div><div class="kpi-value" id="sf-inadimp-r" style="color:var(--blue)">—</div><div class="kpi-sub">Vencido ÷ Total Receber</div></div>
       </div>
 
-      <!-- ── AGING ──────────────────────────────────────────────── -->
-      <div class="kpi-section-label" style="margin-bottom:8px">Aging — Vencidos</div>
-      <div class="two-panel" style="margin-bottom:12px;margin-top:0">
-        <div class="panel-card">
-          <div class="panel-hdr"><h3>Contas a Pagar — Vencidos</h3><small id="aging-p-total">—</small></div>
-          <table><thead><tr><th>Faixa</th><th style="text-align:center">#</th><th class="tr">Valor</th></tr></thead>
-          <tbody id="aging-p-body"></tbody></table>
-        </div>
-        <div class="panel-card">
-          <div class="panel-hdr"><h3>Contas a Receber — Vencidos</h3><small id="aging-r-total">—</small></div>
-          <table><thead><tr><th>Faixa</th><th style="text-align:center">#</th><th class="tr">Valor</th></tr></thead>
-          <tbody id="aging-r-body"></tbody></table>
-        </div>
-      </div>
-
-      <div class="kpi-section-label" style="margin-bottom:8px">Aging — A Vencer</div>
+            <!-- ── AGING UNIFICADO ─────────────────────────────────── -->
+      <div class="kpi-section-label" style="margin-bottom:8px">Aging</div>
       <div class="two-panel" style="margin-bottom:16px;margin-top:0">
+
+        <!-- Pagar: vencidos + a vencer -->
         <div class="panel-card">
-          <div class="panel-hdr"><h3>Contas a Pagar — A Vencer</h3><small id="aging-pv-total">—</small></div>
-          <table><thead><tr><th>Faixa</th><th style="text-align:center">#</th><th class="tr">Valor</th></tr></thead>
-          <tbody id="aging-pv-body"></tbody></table>
+          <div class="panel-hdr"><h3>Contas a Pagar</h3><small id="aging-p-total">—</small></div>
+          <table>
+            <thead><tr><th>Faixa</th><th style="text-align:center">#</th><th class="tr">Valor</th></tr></thead>
+            <tbody><tr><td colspan="3" style="background:#fdf0eb;font-size:8px;font-weight:700;color:var(--red);text-transform:uppercase;letter-spacing:.8px;padding:4px 7px;font-family:'DM Mono',monospace">Vencidos</td></tr></tbody>
+            <tbody id="aging-p-body"></tbody>
+            <tbody><tr><td colspan="3" style="background:var(--surface2);font-size:8px;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:.8px;padding:4px 7px;font-family:'DM Mono',monospace">A Vencer</td></tr></tbody>
+            <tbody id="aging-pv-body"></tbody>
+          </table>
         </div>
+
+        <!-- Receber: vencidos + a receber -->
         <div class="panel-card">
-          <div class="panel-hdr"><h3>Contas a Receber — A Receber</h3><small id="aging-rv-total">—</small></div>
-          <table><thead><tr><th>Faixa</th><th style="text-align:center">#</th><th class="tr">Valor</th></tr></thead>
-          <tbody id="aging-rv-body"></tbody></table>
+          <div class="panel-hdr"><h3>Contas a Receber</h3><small id="aging-r-total">—</small></div>
+          <table>
+            <thead><tr><th>Faixa</th><th style="text-align:center">#</th><th class="tr">Valor</th></tr></thead>
+            <tbody><tr><td colspan="3" style="background:#fdf0eb;font-size:8px;font-weight:700;color:var(--red);text-transform:uppercase;letter-spacing:.8px;padding:4px 7px;font-family:'DM Mono',monospace">Vencidos</td></tr></tbody>
+            <tbody id="aging-r-body"></tbody>
+            <tbody><tr><td colspan="3" style="background:var(--surface2);font-size:8px;font-weight:700;color:var(--blue);text-transform:uppercase;letter-spacing:.8px;padding:4px 7px;font-family:'DM Mono',monospace">A Receber</td></tr></tbody>
+            <tbody id="aging-rv-body"></tbody>
+          </table>
         </div>
       </div>
 
-      <!-- ── FLUXO 12 SEMANAS ──────────────────────────────────── -->
+      <!-- ── FLUXO<!-- ── FLUXO 12 SEMANAS ──────────────────────────────────── -->
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
-        <div class="kpi-section-label" style="margin-bottom:0">Fluxo — Próximas 12 Semanas</div>
+        <div class="kpi-section-label" style="margin-bottom:0">Fluxo — Próximas 6 Semanas</div>
         <label style="display:flex;align-items:center;gap:6px;font-size:11px;color:var(--ink3);font-family:'Roboto',sans-serif">
           Saldo bancário inicial:
           <input id="saldo-inicial" type="text" placeholder="R$ 0,00"
@@ -524,23 +525,80 @@ tr:hover td{background:var(--surface2);}
         </table>
       </div>
 
-      <!-- ── PAINÉIS ────────────────────────────────────────────── -->
+      <!-- ── FLUXO 15 DIAS ÚTEIS ──────────────────────────────── -->
+      <div class="kpi-section-label" style="margin-bottom:8px;margin-top:4px">Fluxo — Próximos 10 Dias Úteis</div>
+      <div class="panel-card" style="margin-bottom:16px;overflow-x:auto">
+        <table id="fluxo15-table" style="min-width:700px">
+          <thead><tr>
+            <th>Dia</th>
+            <th class="tr" style="color:var(--red)">Pagar</th>
+            <th class="tr" style="color:var(--blue)">Receber</th>
+            <th class="tr">Saldo do Dia</th>
+            <th class="tr">Saldo Acumulado</th>
+          </tr></thead>
+          <tbody id="fluxo15-body"></tbody>
+        </table>
+      </div>
+            <!-- ── PAINÉIS ────────────────────────────────────────────── -->
       <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:16px">
+
+        <!-- Top Fornecedores -->
         <div class="panel-card">
-          <div class="panel-hdr"><h3>Top Fornecedores</h3><small id="plano-forn-total-lbl">—</small><button class="btn-xs" onclick="exportPlanoFornExcel()" style="margin-left:auto">Exportar</button></div>
-          <div class="panel-table-wrap"><table><thead><tr><th>Fornecedor</th><th>Plano Fin.</th><th>#</th><th class="tr">Vencido</th><th class="tr">A vencer</th><th class="tr">Total</th></tr></thead>
-          <tbody id="plano-forn-body"></tbody></table><div class="empty" id="plano-forn-empty" style="display:none">Nenhum fornecedor.</div></div>
+          <div class="panel-hdr">
+            <h3>Top Fornecedores</h3><small id="plano-forn-total-lbl">—</small>
+            <button class="btn-xs" onclick="exportPlanoFornExcel()" style="margin-left:auto">Exportar</button>
+          </div>
+          <div class="panel-table-wrap">
+            <table>
+              <thead><tr>
+                <th style="width:55%">Fornecedor</th>
+                <th style="text-align:center;width:10%">#</th>
+                <th class="tr" style="width:35%">Vencido</th>
+              </tr></thead>
+              <tbody id="plano-forn-body"></tbody>
+            </table>
+            <div class="empty" id="plano-forn-empty" style="display:none">Nenhum fornecedor.</div>
+          </div>
         </div>
+
+        <!-- Top Clientes -->
         <div class="panel-card">
-          <div class="panel-hdr"><h3>Top Clientes</h3><small id="cli-total-lbl">—</small><button class="btn-xs" onclick="exportPanelExcel('cli')" style="margin-left:auto">Exportar</button></div>
-          <div class="panel-table-wrap"><table><thead><tr><th>Cliente</th><th>Emp.</th><th>#</th><th class="tr">Vencido</th><th class="tr">A receber</th><th class="tr">Total</th></tr></thead>
-          <tbody id="cli-body"></tbody></table><div class="empty" id="cli-empty" style="display:none">Nenhum cliente.</div></div>
+          <div class="panel-hdr">
+            <h3>Top Clientes</h3><small id="cli-total-lbl">—</small>
+            <button class="btn-xs" onclick="exportPanelExcel('cli')" style="margin-left:auto">Exportar</button>
+          </div>
+          <div class="panel-table-wrap">
+            <table>
+              <thead><tr>
+                <th style="width:55%">Cliente</th>
+                <th style="text-align:center;width:10%">#</th>
+                <th class="tr" style="width:35%">Vencido</th>
+              </tr></thead>
+              <tbody id="cli-body"></tbody>
+            </table>
+            <div class="empty" id="cli-empty" style="display:none">Nenhum cliente.</div>
+          </div>
         </div>
+
+        <!-- Top Planos Financeiros -->
         <div class="panel-card">
-          <div class="panel-hdr"><h3>Top Planos Financeiros</h3><small id="plano-resumo-lbl">—</small><button class="btn-xs" onclick="exportPlanoResumoExcel()" style="margin-left:auto">Exportar</button></div>
-          <div class="panel-table-wrap"><table><thead><tr><th>Plano Financeiro</th><th>#</th><th class="tr">Vencido</th><th class="tr">A vencer</th><th class="tr">Total</th></tr></thead>
-          <tbody id="plano-resumo-body"></tbody></table><div class="empty" id="plano-resumo-empty" style="display:none">Nenhum plano.</div></div>
+          <div class="panel-hdr">
+            <h3>Top Planos Financeiros</h3><small id="plano-resumo-lbl">—</small>
+            <button class="btn-xs" onclick="exportPlanoResumoExcel()" style="margin-left:auto">Exportar</button>
+          </div>
+          <div class="panel-table-wrap">
+            <table>
+              <thead><tr>
+                <th style="width:55%">Plano Financeiro</th>
+                <th style="text-align:center;width:10%">#</th>
+                <th class="tr" style="width:35%">Vencido</th>
+              </tr></thead>
+              <tbody id="plano-resumo-body"></tbody>
+            </table>
+            <div class="empty" id="plano-resumo-empty" style="display:none">Nenhum plano.</div>
+          </div>
         </div>
+
       </div>
 
     </div>
@@ -1450,18 +1508,19 @@ function renderFornAberto(dp){
   var _fpl=document.getElementById('forn-period-lbl');if(_fpl)_fpl.textContent=lbl;
 }
 function renderClientesAberto(dr){
-  const tot=dr.reduce((s,r)=>s+r.valor,0);
   const agg={};
   dr.forEach(r=>{const c=r.cliente||'—';if(!agg[c])agg[c]={emp:r.empresa||'',v:0,a:0,tot:0,c:0};r.status==='VENCIDO'?agg[c].v+=r.valor:agg[c].a+=r.valor;agg[c].tot+=r.valor;agg[c].c++;});
   const sorted=Object.entries(agg).sort((a,b)=>b[1].tot-a[1].tot);
-  const tbody=document.getElementById('cli-body'); tbody.innerHTML='';
+  const tbody=document.getElementById('cli-body');if(!tbody)return;tbody.innerHTML='';
   sorted.forEach(([c,o])=>{
-    const tr=document.createElement('tr'); tr.style.cursor='pointer'; tr.onclick=()=>openCliTab(c,dr);
-    tr.innerHTML=`<td title="${c}" style="color:#1E3A8A;text-decoration:underline">${trunc(c,28)}</td><td>${(o.emp||'').split(' - ')[0]}</td><td style="text-align:center">${o.c}</td><td class="tr" style="color:#1E3A8A">${o.v?fmtPos(o.v):'-'}</td><td class="tr" style="color:#2563EB">${o.a?fmtPos(o.a):'-'}</td><td class="tr" style="font-weight:700;color:#1E3A8A">${fmtPos(o.tot)}</td>`;
+    const tr=document.createElement('tr');tr.style.cursor='pointer';
+    tr.onclick=()=>openCliTab(c,dr);
+    tr.innerHTML=`<td title="${c}" style="color:var(--blue);text-decoration:underline;max-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${trunc(c,28)}</td>`
+      +`<td style="text-align:center;font-family:DM Mono,monospace">${o.c}</td>`
+      +`<td class="tr" style="color:var(--blue)">${o.v?fmtPos(o.v):fmtPos(o.tot)}</td>`;
     tbody.appendChild(tr);
   });
-  document.getElementById('cli-empty').style.display=sorted.length?'none':'block';
-  document.getElementById('cli-total-lbl').textContent=sorted.length+' clientes';
+  const el=document.getElementById('cli-total-lbl');if(el)el.textContent=sorted.length+' clientes';
 }
 
 function updateAll(){
@@ -1471,6 +1530,7 @@ function updateAll(){
   renderSaudeFinanceira(dp, dr);
   renderAging(dp, dr);
   renderFluxo();
+  renderFluxo15();
   renderPlanoFornPanel(dp);
   renderClientesAberto(dr);
   renderPlanoResumoPanel(dp);
@@ -1771,7 +1831,7 @@ function buildPlanoYearBody(y,yData,yMax,dp,ano){
 function renderPlanoFornPanel(dp){
   const agg={};
   dp.forEach(r=>{
-    if(!agg[r.fornecedor])agg[r.fornecedor]={plano:r.plano_fin||'',v:0,a:0,tot:0,c:0};
+    if(!agg[r.fornecedor])agg[r.fornecedor]={v:0,a:0,tot:0,c:0};
     r.status==='VENCIDO'?agg[r.fornecedor].v+=r.valor:agg[r.fornecedor].a+=r.valor;
     agg[r.fornecedor].tot+=r.valor;agg[r.fornecedor].c++;
   });
@@ -1780,11 +1840,12 @@ function renderPlanoFornPanel(dp){
   sorted.forEach(([f,o])=>{
     const tr=document.createElement('tr');tr.style.cursor='pointer';
     tr.onclick=()=>openFornTab(f,dp);
-    tr.innerHTML=`<td title="${f}" style="color:#7F1D1D;text-decoration:underline">${trunc(f,26)}</td><td title="${o.plano}">${trunc(o.plano,20)}</td><td style="text-align:center">${o.c}</td><td class="tr" style="color:#7F1D1D">${o.v?fmtNeg(o.v):'-'}</td><td class="tr" style="color:#DC2626">${o.a?fmtNeg(o.a):'-'}</td><td class="tr" style="font-weight:700;color:#7F1D1D">${fmtNeg(o.tot)}</td>`;
+    tr.innerHTML=`<td title="${f}" style="color:var(--red);text-decoration:underline;max-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${trunc(f,28)}</td>`
+      +`<td style="text-align:center;font-family:DM Mono,monospace">${o.c}</td>`
+      +`<td class="tr" style="color:var(--red)">${o.v?fmtNeg(o.v):fmtNeg(o.tot)}</td>`;
     tbody.appendChild(tr);
   });
-  document.getElementById('plano-forn-empty').style.display=sorted.length?'none':'block';
-  document.getElementById('plano-forn-total-lbl').textContent=sorted.length+' fornecedores';
+  const el=document.getElementById('plano-forn-total-lbl');if(el)el.textContent=sorted.length+' fornecedores';
 }
 
 function renderPlanoResumoPanel(dp){
@@ -1799,11 +1860,12 @@ function renderPlanoResumoPanel(dp){
   const tbody=document.getElementById('plano-resumo-body');if(!tbody)return;tbody.innerHTML='';
   sorted.forEach(([p,o])=>{
     const tr=document.createElement('tr');
-    tr.innerHTML=`<td title="${p}" style="color:#7F1D1D">${trunc(p,32)}</td><td style="text-align:center">${o.c}</td><td class="tr" style="color:#7F1D1D">${o.v?fmtNeg(o.v):'-'}</td><td class="tr" style="color:#DC2626">${o.a?fmtNeg(o.a):'-'}</td><td class="tr" style="font-weight:700;color:#7F1D1D">${fmtNeg(o.tot)}</td>`;
+    tr.innerHTML=`<td title="${p}" style="color:var(--ink2);max-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${trunc(p,30)}</td>`
+      +`<td style="text-align:center;font-family:DM Mono,monospace">${o.c}</td>`
+      +`<td class="tr" style="color:var(--red)">${o.v?fmtNeg(o.v):fmtNeg(o.tot)}</td>`;
     tbody.appendChild(tr);
   });
-  document.getElementById('plano-resumo-empty').style.display=sorted.length?'none':'block';
-  document.getElementById('plano-resumo-lbl').textContent=sorted.length+' planos';
+  const el=document.getElementById('plano-resumo-lbl');if(el)el.textContent=sorted.length+' planos';
 }
 
 function exportPlanoFornExcel(){
@@ -3100,7 +3162,7 @@ function renderFluxo() {
   tbody.innerHTML = '';
   var todayISO = today.toISOString().slice(0,10);
 
-  for(var w=0; w<12; w++){
+  for(var w=0; w<6; w++){
     var mon = new Date(weekStart); mon.setDate(weekStart.getDate() + w*7);
     var sun = new Date(mon); sun.setDate(mon.getDate()+6);
     var pad = function(n){return String(n).padStart(2,'0');};
@@ -3154,10 +3216,77 @@ function renderFluxo() {
 
 function onSaldoInput(el) {
   var raw = el.value.replace(/[^0-9]/g, '');
-  if (!raw) { el.value = ''; renderFluxo(); return; }
+  if (!raw) { el.value = ''; renderFluxo(); renderFluxo15(); return; }
   var num = parseInt(raw, 10) / 100;
   el.value = 'R$ ' + num.toLocaleString('pt-BR', {minimumFractionDigits:2, maximumFractionDigits:2});
-  renderFluxo();
+  renderFluxo(); renderFluxo15();
+}
+
+function renderFluxo15() {
+  var tbody = document.getElementById('fluxo15-body'); if(!tbody) return;
+
+  // Saldo bancário (shared with 6-week fluxo)
+  var saldoInpEl = document.getElementById('saldo-inicial');
+  var saldoInpRaw = saldoInpEl ? saldoInpEl.value.replace(/[R$\s.]/g,'').replace(',','.') : '0';
+  var saldoAcum = parseFloat(saldoInpRaw) || 0;
+
+  var dp = filteredPagar();
+  var dr = filteredReceber();
+
+  // Build daily lookup
+  var pagarByDay = {}, receberByDay = {};
+  dp.forEach(function(r){ if(!pagarByDay[r.data]) pagarByDay[r.data]=0; pagarByDay[r.data]+=r.valor; });
+  dr.forEach(function(r){ if(!receberByDay[r.data]) receberByDay[r.data]=0; receberByDay[r.data]+=r.valor; });
+
+  var DAY_NAMES = ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
+  var today = new Date(); today.setHours(0,0,0,0);
+  var todayISO = today.toISOString().slice(0,10);
+
+  tbody.innerHTML = '';
+  var businessDays = 0;
+  var cur = new Date(today);
+
+  while(businessDays < 10) {
+    var pad = function(n){return String(n).padStart(2,'0');};
+    var iso = cur.getFullYear()+'-'+pad(cur.getMonth()+1)+'-'+pad(cur.getDate());
+    var dow = cur.getDay();
+    var isHol = SP_HOLIDAYS.has(iso);
+
+    if(dow !== 0 && dow !== 6 && !isHol) {
+      var pVal = Math.abs(pagarByDay[iso] || 0);
+      var rVal = receberByDay[iso] || 0;
+      var saldoDia = rVal - pVal;
+      saldoAcum += saldoDia;
+
+      var isToday = iso === todayISO;
+      var tr = document.createElement('tr');
+      if(isToday) tr.style.cssText = 'background:#fdf2ee;font-weight:600';
+      if(saldoAcum < 0 || saldoDia < 0) tr.style.background = '#fdf0eb';
+
+      var dayLbl = DAY_NAMES[dow]+' '+pad(cur.getDate())+'/'+pad(cur.getMonth()+1);
+
+      tr.innerHTML =
+        '<td style="font-family:DM Mono,monospace;font-size:11px;white-space:nowrap">'+dayLbl+'</td>'
+        +'<td class="tr" style="color:var(--red)">'+(pVal?fmtNeg(-pVal):'-')+'</td>'
+        +'<td class="tr" style="color:var(--blue)">'+(rVal?fmtPos(rVal):'-')+'</td>'
+        +'<td class="tr" style="font-weight:700;color:'+(saldoDia>=0?'var(--blue)':'var(--red)')+'">'+
+          (saldoDia>=0?fmtPos(saldoDia):fmtNeg(saldoDia))+'</td>'
+        +'<td class="tr" style="font-weight:700;color:'+(saldoAcum>=0?'var(--blue)':'var(--red)')+'">'+
+          (saldoAcum>=0?fmtPos(saldoAcum):fmtNeg(saldoAcum))+'</td>';
+
+      // Click to open detail
+      (function(d, dp_, dr_){
+        var cells = tr.querySelectorAll('td.tr');
+        if(cells[0]) cells[0].style.cursor='pointer', cells[0].onclick=function(){ openDetailTabDirect(dp_.filter(function(r){return r.data===d;}), 'Pagar — '+d, 0, 'pagar'); };
+        if(cells[1]) cells[1].style.cursor='pointer', cells[1].onclick=function(){ openDetailTabDirect(dr_.filter(function(r){return r.data===d;}), 'Receber — '+d, 0, 'receber'); };
+      })(iso, dp, dr);
+
+      tbody.appendChild(tr);
+      businessDays++;
+    }
+    cur.setDate(cur.getDate()+1);
+    if(cur - today > 60*86400000) break; // safety limit 60 days
+  }
 }
 
 // Init assíncrono — aguarda dados externos
