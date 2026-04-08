@@ -2101,10 +2101,11 @@ function applyExclusions(dash, state) {
     document.querySelectorAll('#cli-filter-list .fitem').forEach(el => { const v = el.dataset.val; el.querySelector('input').checked = selClientes.has(v); });
     document.querySelectorAll('#tipo-list .fitem').forEach(el => { const v = el.dataset.val; el.querySelector('input').checked = selTipos.has(v); });
     document.querySelectorAll('#plano-list .fitem').forEach(el => { const v = el.dataset.val; el.querySelector('input').checked = selPlanos.has(v); });
-    document.getElementById('sel-ano').value = periodAno;
-    document.getElementById('sel-mes').value = periodMes;
-    document.getElementById('sel-sem').value = periodSem;
-    rebuildMes(); rebuildSem();
+    // Period: restore De/Até if saved in profile
+    var deEl  = document.getElementById('sel-de');
+    var ateEl = document.getElementById('sel-ate');
+    if (deEl  && state.periodDe)  deEl.value  = state.periodDe;
+    if (ateEl && state.periodAte) ateEl.value = state.periodAte;
     updateAll();
   } else if (dash === 'pr') {
     if (typeof selEmpPR === 'undefined' || !selEmpPR) return;
