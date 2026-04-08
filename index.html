@@ -522,6 +522,19 @@ tr:hover td{background:var(--surface2);}
             <th class="tr">Saldo Acumulado</th>
           </tr></thead>
           <tbody id="fluxo-body"></tbody>
+          <!-- Toggle row -->
+          <tbody id="fluxo-toggle-row">
+            <tr>
+              <td colspan="9" style="text-align:center;padding:5px;border-top:1px dashed var(--border)">
+                <button id="btn-fluxo-ext" onclick="toggleFluxoExt()"
+                  style="background:none;border:none;color:var(--accent);font-size:10px;font-family:'DM Mono',monospace;cursor:pointer;font-weight:600;letter-spacing:.3px">
+                  Ver semanas 7–12 ▼
+                </button>
+              </td>
+            </tr>
+          </tbody>
+          <!-- Extended weeks 7-12 (hidden by default) -->
+          <tbody id="fluxo-ext-body" style="display:none"></tbody>
         </table>
       </div>
 
@@ -537,6 +550,17 @@ tr:hover td{background:var(--surface2);}
             <th class="tr">Saldo Acumulado</th>
           </tr></thead>
           <tbody id="fluxo15-body"></tbody>
+          <tbody id="fluxo15-toggle-row">
+            <tr>
+              <td colspan="5" style="text-align:center;padding:5px;border-top:1px dashed var(--border)">
+                <button id="btn-fluxo15-ext" onclick="toggleFluxo15Ext()"
+                  style="background:none;border:none;color:var(--accent);font-size:10px;font-family:'DM Mono',monospace;cursor:pointer;font-weight:600;letter-spacing:.3px">
+                  Ver dias 11–20 ▼
+                </button>
+              </td>
+            </tr>
+          </tbody>
+          <tbody id="fluxo15-ext-body" style="display:none"></tbody>
         </table>
       </div>
             <!-- ── PAINÉIS ────────────────────────────────────────────── -->
@@ -1529,6 +1553,11 @@ function updateAll(){
   renderKPIs(dp, dr);
   renderSaudeFinanceira(dp, dr);
   renderAging(dp, dr);
+  // Reset ext sections when data changes
+  var _eb=document.getElementById('fluxo-ext-body');if(_eb){_eb.innerHTML='';_eb.style.display='none';}
+  var _eb2=document.getElementById('fluxo15-ext-body');if(_eb2){_eb2.innerHTML='';_eb2.style.display='none';}
+  var _b1=document.getElementById('btn-fluxo-ext');if(_b1)_b1.textContent='Ver semanas 7–12 ▼';
+  var _b2=document.getElementById('btn-fluxo15-ext');if(_b2)_b2.textContent='Ver dias 11–20 ▼';
   renderFluxo();
   renderFluxo15();
   renderPlanoFornPanel(dp);
@@ -3286,6 +3315,157 @@ function renderFluxo15() {
     }
     cur.setDate(cur.getDate()+1);
     if(cur - today > 60*86400000) break; // safety limit 60 days
+  }
+}
+
+// ══════════════════════════════════════════════════════════════
+// EXPANDABLE FLUXO SECTIONS
+// ══════════════════════════════════════════════════════════════
+
+function toggleFluxoExt() {
+  var ext  = document.getElementById('fluxo-ext-body');
+  var btn  = document.getElementById('btn-fluxo-ext');
+  if (!ext) return;
+  var opening = ext.style.display === 'none';
+  ext.style.display = opening ? 'table-row-group' : 'none';
+  btn.textContent = opening ? 'Recolher semanas 7–12 ▲' : 'Ver semanas 7–12 ▼';
+  if (opening) renderFluxoExt();
+}
+
+function toggleFluxo15Ext() {
+  var ext  = document.getElementById('fluxo15-ext-body');
+  var btn  = document.getElementById('btn-fluxo15-ext');
+  if (!ext) return;
+  var opening = ext.style.display === 'none';
+  ext.style.display = opening ? 'table-row-group' : 'none';
+  btn.textContent = opening ? 'Recolher dias 11–20 ▲' : 'Ver dias 11–20 ▼';
+  if (opening) renderFluxo15Ext();
+}
+
+function renderFluxoExt() {
+  // Render weeks 7-12, starting saldo from where week 6 ended
+  var tbody = document.getElementById('fluxo-ext-body'); if (!tbody) return;
+
+  var saldoInpEl = document.getElementById('saldo-inicial');
+  var saldoInpRaw = saldoInpEl ? saldoInpEl.value.replace(/[R$\s.]/g,'').replace(',','.') : '0';
+  var saldoBase = parseFloat(saldoInpRaw) || 0;
+
+  var dp = filteredPagar();
+  var dr = filteredReceber();
+
+  // Build semana lookup
+  var pagarBySem = {}, receberBySem = {};
+  dp.forEach(function(r){ if(!pagarBySem[r.semana]) pagarBySem[r.semana]={pv:0,pa:0}; r.status==='VENCIDO'?pagarBySem[r.semana].pv+=r.valor:pagarBySem[r.semana].pa+=r.valor; });
+  dr.forEach(function(r){ if(!receberBySem[r.semana]) receberBySem[r.semana]={rv:0,ra:0}; r.status==='VENCIDO'?receberBySem[r.semana].rv+=r.valor:receberBySem[r.semana].ra+=r.valor; });
+
+  // Accumulate first 6 weeks to get carry-over saldo
+  var today = new Date(); today.setHours(0,0,0,0);
+  var day = today.getDay();
+  var diff = today.getDate() - day + (day===0?-6:1);
+  var weekStart = new Date(today); weekStart.setDate(diff);
+  var pad = function(n){return String(n).padStart(2,'0');};
+
+  var saldoAcum = saldoBase;
+  for (var w = 0; w < 6; w++) {
+    var mon = new Date(weekStart); mon.setDate(weekStart.getDate() + w*7);
+    var sun = new Date(mon); sun.setDate(mon.getDate()+6);
+    var monISO = mon.getFullYear()+'-'+pad(mon.getMonth()+1)+'-'+pad(mon.getDate());
+    var sunISO = sun.getFullYear()+'-'+pad(sun.getMonth()+1)+'-'+pad(sun.getDate());
+    var sem = monISO+'/'+sunISO;
+    var pg = pagarBySem[sem]   || {pv:0,pa:0};
+    var rg = receberBySem[sem] || {rv:0,ra:0};
+    saldoAcum += (rg.rv + rg.ra) + (pg.pv + pg.pa);
+  }
+
+  // Render weeks 7-12
+  tbody.innerHTML = '';
+  for (var w2 = 6; w2 < 12; w2++) {
+    var mon2 = new Date(weekStart); mon2.setDate(weekStart.getDate() + w2*7);
+    var sun2 = new Date(mon2); sun2.setDate(mon2.getDate()+6);
+    var monISO2 = mon2.getFullYear()+'-'+pad(mon2.getMonth()+1)+'-'+pad(mon2.getDate());
+    var sunISO2 = sun2.getFullYear()+'-'+pad(sun2.getMonth()+1)+'-'+pad(sun2.getDate());
+    var sem2 = monISO2+'/'+sunISO2;
+    var semLbl2 = semLabelBiz(sem2);
+    var pg2 = pagarBySem[sem2]   || {pv:0,pa:0};
+    var rg2 = receberBySem[sem2] || {rv:0,ra:0};
+    var totP2 = pg2.pv + pg2.pa;
+    var totR2 = rg2.rv + rg2.ra;
+    var saldoSem2 = totR2 + totP2;
+    saldoAcum += saldoSem2;
+    var tr = document.createElement('tr');
+    if (saldoSem2 < 0 || saldoAcum < 0) tr.style.background = '#fdf0eb';
+    tr.innerHTML =
+      '<td style="font-family:DM Mono,monospace;font-size:11px;white-space:nowrap">'+semLbl2+'</td>'
+      +'<td class="tr" style="color:var(--red)">'+(pg2.pv?fmtNeg(pg2.pv):'-')+'</td>'
+      +'<td class="tr" style="color:#c05030">'+(pg2.pa?fmtNeg(pg2.pa):'-')+'</td>'
+      +'<td class="tr" style="color:var(--red);font-weight:700">'+(totP2?fmtNeg(totP2):'-')+'</td>'
+      +'<td class="tr" style="color:#2a4d80">'+(rg2.rv?fmtPos(rg2.rv):'-')+'</td>'
+      +'<td class="tr" style="color:var(--blue)">'+(rg2.ra?fmtPos(rg2.ra):'-')+'</td>'
+      +'<td class="tr" style="color:var(--blue);font-weight:700">'+(totR2?fmtPos(totR2):'-')+'</td>'
+      +'<td class="tr" style="font-weight:700;color:'+(saldoSem2>=0?'var(--blue)':'var(--red)')+'">'+
+        (saldoSem2>=0?fmtPos(saldoSem2):fmtNeg(saldoSem2))+'</td>'
+      +'<td class="tr" style="font-weight:700;color:'+(saldoAcum>=0?'var(--blue)':'var(--red)')+'">'+
+        (saldoAcum>=0?fmtPos(saldoAcum):fmtNeg(saldoAcum))+'</td>';
+    tbody.appendChild(tr);
+  }
+}
+
+function renderFluxo15Ext() {
+  var tbody = document.getElementById('fluxo15-ext-body'); if (!tbody) return;
+  var saldoInpEl = document.getElementById('saldo-inicial');
+  var saldoInpRaw = saldoInpEl ? saldoInpEl.value.replace(/[R$\s.]/g,'').replace(',','.') : '0';
+  var saldoBase = parseFloat(saldoInpRaw) || 0;
+  var dp = filteredPagar(), dr = filteredReceber();
+  var pagarByDay = {}, receberByDay = {};
+  dp.forEach(function(r){ if(!pagarByDay[r.data]) pagarByDay[r.data]=0; pagarByDay[r.data]+=r.valor; });
+  dr.forEach(function(r){ if(!receberByDay[r.data]) receberByDay[r.data]=0; receberByDay[r.data]+=r.valor; });
+  var DAY_NAMES = ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
+  var today = new Date(); today.setHours(0,0,0,0);
+  var pad = function(n){return String(n).padStart(2,'0');};
+
+  // Skip first 10 business days to get carry-over saldo
+  var saldoAcum = saldoBase;
+  var cur = new Date(today);
+  var skipped = 0;
+  var safety = 0;
+  while (skipped < 10 && safety < 60) {
+    var iso = cur.getFullYear()+'-'+pad(cur.getMonth()+1)+'-'+pad(cur.getDate());
+    if (cur.getDay() !== 0 && cur.getDay() !== 6 && !SP_HOLIDAYS.has(iso)) {
+      saldoAcum += (receberByDay[iso]||0) - Math.abs(pagarByDay[iso]||0);
+      skipped++;
+    }
+    cur.setDate(cur.getDate()+1);
+    safety++;
+  }
+
+  // Render days 11-20
+  tbody.innerHTML = '';
+  var rendered = 0;
+  safety = 0;
+  while (rendered < 10 && safety < 60) {
+    var iso2 = cur.getFullYear()+'-'+pad(cur.getMonth()+1)+'-'+pad(cur.getDate());
+    var dow = cur.getDay();
+    if (dow !== 0 && dow !== 6 && !SP_HOLIDAYS.has(iso2)) {
+      var pVal = Math.abs(pagarByDay[iso2]||0);
+      var rVal = receberByDay[iso2]||0;
+      var saldoDia = rVal - pVal;
+      saldoAcum += saldoDia;
+      var tr = document.createElement('tr');
+      if (saldoAcum < 0 || saldoDia < 0) tr.style.background = '#fdf0eb';
+      var dayLbl = DAY_NAMES[dow]+' '+pad(cur.getDate())+'/'+pad(cur.getMonth()+1);
+      tr.innerHTML =
+        '<td style="font-family:DM Mono,monospace;font-size:11px;white-space:nowrap">'+dayLbl+'</td>'
+        +'<td class="tr" style="color:var(--red)">'+(pVal?fmtNeg(-pVal):'-')+'</td>'
+        +'<td class="tr" style="color:var(--blue)">'+(rVal?fmtPos(rVal):'-')+'</td>'
+        +'<td class="tr" style="font-weight:700;color:'+(saldoDia>=0?'var(--blue)':'var(--red)')+'">'+
+          (saldoDia>=0?fmtPos(saldoDia):fmtNeg(saldoDia))+'</td>'
+        +'<td class="tr" style="font-weight:700;color:'+(saldoAcum>=0?'var(--blue)':'var(--red)')+'">'+
+          (saldoAcum>=0?fmtPos(saldoAcum):fmtNeg(saldoAcum))+'</td>';
+      tbody.appendChild(tr);
+      rendered++;
+    }
+    cur.setDate(cur.getDate()+1);
+    safety++;
   }
 }
 
