@@ -335,7 +335,7 @@ tr:hover td{background:var(--surface2);}
 #fluxo-table td { font-size:11px; }
 #fluxo-table td.tr { font-family:'DM Mono',monospace; }
 </style>
-<meta id="dcngeagmmhegagicpcmpinaoklddcgon"></head>
+</head>
 <body>
 
 <!-- ── SIDEBAR ─────────────────────────────────────────── -->
@@ -445,28 +445,28 @@ tr:hover td{background:var(--surface2);}
       <!-- ── KPIs PAGAR ──────────────────────────────────────── -->
       <div class="kpi-section-label">Contas a Pagar</div>
       <div class="kpis" style="margin-bottom:8px">
-        <div class="kpi pt" style="cursor:pointer" onclick="openKpiDetail('pagar','all')" title="Ver títulos"><div class="kpi-label">Total a Pagar</div><div class="kpi-value" id="kpf-total">(R$ 0,00)</div><div class="kpi-sub" id="kpf-qtd">0 títulos</div></div>
-        <div class="kpi pv" style="cursor:pointer" onclick="openKpiDetail('pagar','vencido')" title="Ver títulos"><div class="kpi-label">Vencido</div><div class="kpi-value" id="kpf-venc">(R$ 0,00)</div><div class="kpi-sub" id="kpf-venc-q">0 títulos</div></div>
+        <div class="kpi pt" style="cursor:pointer" onclick="openKpiDetail('pagar','all')" title="Ver títulos"><div class="kpi-label">Total a Pagar</div><div class="kpi-value" id="kpf-total">(R$ 120,00)</div><div class="kpi-sub" id="kpf-qtd">1 títulos</div></div>
+        <div class="kpi pv" style="cursor:pointer" onclick="openKpiDetail('pagar','vencido')" title="Ver títulos"><div class="kpi-label">Vencido</div><div class="kpi-value" id="kpf-venc">(R$ 120,00)</div><div class="kpi-sub" id="kpf-venc-q">1 títulos</div></div>
         <div class="kpi pa" style="cursor:pointer" onclick="openKpiDetail('pagar','avencer')" title="Ver títulos"><div class="kpi-label">A Vencer</div><div class="kpi-value" id="kpf-avenc">(R$ 0,00)</div><div class="kpi-sub" id="kpf-avenc-q">0 títulos</div></div>
-        <div class="kpi pf"><div class="kpi-label">Fornecedores</div><div class="kpi-value" id="kpf-forn">0</div><div class="kpi-sub">únicos</div></div>
+        <div class="kpi pf"><div class="kpi-label">Fornecedores</div><div class="kpi-value" id="kpf-forn">1</div><div class="kpi-sub">únicos</div></div>
       </div>
 
       <!-- ── KPIs RECEBER ─────────────────────────────────────── -->
       <div class="kpi-section-label">Contas a Receber</div>
       <div class="kpis" style="margin-bottom:10px">
-        <div class="kpi rt" style="cursor:pointer" onclick="openKpiDetail('receber','all')" title="Ver títulos"><div class="kpi-label">Total a Receber</div><div class="kpi-value" id="kpr-total">R$ 0,00</div><div class="kpi-sub" id="kpr-qtd">0 títulos</div></div>
-        <div class="kpi rv" style="cursor:pointer" onclick="openKpiDetail('receber','vencido')" title="Ver títulos"><div class="kpi-label">Vencido</div><div class="kpi-value" id="kpr-venc">R$ 0,00</div><div class="kpi-sub" id="kpr-venc-q">0 títulos</div></div>
+        <div class="kpi rt" style="cursor:pointer" onclick="openKpiDetail('receber','all')" title="Ver títulos"><div class="kpi-label">Total a Receber</div><div class="kpi-value" id="kpr-total">R$ 30.000,00</div><div class="kpi-sub" id="kpr-qtd">1 títulos</div></div>
+        <div class="kpi rv" style="cursor:pointer" onclick="openKpiDetail('receber','vencido')" title="Ver títulos"><div class="kpi-label">Vencido</div><div class="kpi-value" id="kpr-venc">R$ 30.000,00</div><div class="kpi-sub" id="kpr-venc-q">1 títulos</div></div>
         <div class="kpi ra" style="cursor:pointer" onclick="openKpiDetail('receber','areceber')" title="Ver títulos"><div class="kpi-label">A Receber</div><div class="kpi-value" id="kpr-avenc">R$ 0,00</div><div class="kpi-sub" id="kpr-avenc-q">0 títulos</div></div>
-        <div class="kpi rf"><div class="kpi-label">Clientes</div><div class="kpi-value" id="kpr-cli">0</div><div class="kpi-sub">únicos</div></div>
+        <div class="kpi rf"><div class="kpi-label">Clientes</div><div class="kpi-value" id="kpr-cli">1</div><div class="kpi-sub">únicos</div></div>
       </div>
 
       <!-- ── KPIs SAÚDE FINANCEIRA ─────────────────────────────── -->
       <div class="kpi-section-label">Saúde Financeira</div>
       <div class="kpis" style="margin-bottom:16px">
-        <div class="kpi" id="kpi-saldo-liq" style="border-left-color: var(--blue);"><div class="kpi-label">Saldo Líquido</div><div class="kpi-value" id="sf-saldo" style="color: var(--blue);">R$ 0,00</div><div class="kpi-sub">Receber − Pagar</div></div>
-        <div class="kpi" style="border-left-color:var(--accent)"><div class="kpi-label">Cobertura</div><div class="kpi-value" id="sf-cobertura" style="color:var(--accent)">0.0%</div><div class="kpi-sub">Receber ÷ Pagar</div></div>
-        <div class="kpi" style="border-left-color:var(--red)"><div class="kpi-label">Inadimpl. Pagar</div><div class="kpi-value" id="sf-inadimp-p" style="color:var(--red)">0.0%</div><div class="kpi-sub">Vencido ÷ Total Pagar</div></div>
-        <div class="kpi" style="border-left-color:var(--blue)"><div class="kpi-label">Inadimpl. Receber</div><div class="kpi-value" id="sf-inadimp-r" style="color:var(--blue)">0.0%</div><div class="kpi-sub">Vencido ÷ Total Receber</div></div>
+        <div class="kpi" id="kpi-saldo-liq" style="border-left-color: var(--blue);"><div class="kpi-label">Saldo Líquido</div><div class="kpi-value" id="sf-saldo" style="color: var(--blue);">R$ 29.880,00</div><div class="kpi-sub">Receber − Pagar</div></div>
+        <div class="kpi" style="border-left-color:var(--accent)"><div class="kpi-label">Cobertura</div><div class="kpi-value" id="sf-cobertura" style="color:var(--accent)">25000.0%</div><div class="kpi-sub">Receber ÷ Pagar</div></div>
+        <div class="kpi" style="border-left-color:var(--red)"><div class="kpi-label">Inadimpl. Pagar</div><div class="kpi-value" id="sf-inadimp-p" style="color:var(--red)">100.0%</div><div class="kpi-sub">Vencido ÷ Total Pagar</div></div>
+        <div class="kpi" style="border-left-color:var(--blue)"><div class="kpi-label">Inadimpl. Receber</div><div class="kpi-value" id="sf-inadimp-r" style="color:var(--blue)">100.0%</div><div class="kpi-sub">Vencido ÷ Total Receber</div></div>
       </div>
 
             <!-- ── AGING UNIFICADO ─────────────────────────────────── -->
@@ -475,11 +475,11 @@ tr:hover td{background:var(--surface2);}
 
         <!-- Pagar: vencidos + a vencer -->
         <div class="panel-card">
-          <div class="panel-hdr"><h3>Contas a Pagar</h3><small id="aging-p-total">233 títulos</small></div>
+          <div class="panel-hdr"><h3>Contas a Pagar</h3><small id="aging-p-total">1 títulos</small></div>
           <table>
             <thead><tr><th>Faixa</th><th style="text-align:center">#</th><th class="tr">Valor</th></tr></thead>
             <tbody><tr><td colspan="3" style="background:#fdf0eb;font-size:8px;font-weight:700;color:var(--red);text-transform:uppercase;letter-spacing:.8px;padding:4px 7px;font-family:'DM Mono',monospace">Vencidos</td></tr></tbody>
-            <tbody id="aging-p-body"></tbody>
+            <tbody id="aging-p-body"><tr style="cursor: pointer;"><td>Vencido há +90 dias</td><td style="text-align:center;font-family:DM Mono,monospace">1</td><td class="tr" style="color:var(--red)">(R$ 120,00)</td></tr><tr style="font-weight: 700; border-top: 2px solid var(--border); background: var(--surface2);"><td style="color:var(--accent)">Total</td><td style="text-align:center;font-family:DM Mono,monospace;font-weight:700">1</td><td class="tr" style="color:var(--red);font-weight:700">(R$ 120,00)</td></tr></tbody>
             <tbody><tr><td colspan="3" style="background:var(--surface2);font-size:8px;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:.8px;padding:4px 7px;font-family:'DM Mono',monospace">A Vencer</td></tr></tbody>
             <tbody id="aging-pv-body"></tbody>
           </table>
@@ -487,11 +487,11 @@ tr:hover td{background:var(--surface2);}
 
         <!-- Receber: vencidos + a receber -->
         <div class="panel-card">
-          <div class="panel-hdr"><h3>Contas a Receber</h3><small id="aging-r-total">93 títulos</small></div>
+          <div class="panel-hdr"><h3>Contas a Receber</h3><small id="aging-r-total">1 títulos</small></div>
           <table>
             <thead><tr><th>Faixa</th><th style="text-align:center">#</th><th class="tr">Valor</th></tr></thead>
             <tbody><tr><td colspan="3" style="background:#fdf0eb;font-size:8px;font-weight:700;color:var(--red);text-transform:uppercase;letter-spacing:.8px;padding:4px 7px;font-family:'DM Mono',monospace">Vencidos</td></tr></tbody>
-            <tbody id="aging-r-body"></tbody>
+            <tbody id="aging-r-body"><tr style="cursor: pointer;"><td>Vencido há +90 dias</td><td style="text-align:center;font-family:DM Mono,monospace">1</td><td class="tr" style="color:var(--blue)">R$ 30.000,00</td></tr><tr style="font-weight: 700; border-top: 2px solid var(--border); background: var(--surface2);"><td style="color:var(--accent)">Total</td><td style="text-align:center;font-family:DM Mono,monospace;font-weight:700">1</td><td class="tr" style="color:var(--blue);font-weight:700">R$ 30.000,00</td></tr></tbody>
             <tbody><tr><td colspan="3" style="background:var(--surface2);font-size:8px;font-weight:700;color:var(--blue);text-transform:uppercase;letter-spacing:.8px;padding:4px 7px;font-family:'DM Mono',monospace">A Receber</td></tr></tbody>
             <tbody id="aging-rv-body"></tbody>
           </table>
@@ -519,7 +519,7 @@ tr:hover td{background:var(--surface2);}
             <th class="tr">Saldo Semana</th>
             <th class="tr">Saldo Acumulado</th>
           </tr></thead>
-          <tbody id="fluxo-body"><tr style="background: rgb(253, 242, 238); font-weight: 600;"><td style="white-space:nowrap;font-family:DM Mono,monospace;font-size:11px">06/04 a 10/04</td><td class="tr" style="color: var(--red); cursor: pointer;">-</td><td class="tr" style="color: rgb(192, 80, 48); cursor: pointer;">-</td><td class="tr" style="color: var(--red); font-weight: 700; cursor: pointer;">-</td><td class="tr" style="color: rgb(42, 77, 128); cursor: pointer;">-</td><td class="tr" style="color: var(--blue); cursor: pointer;">-</td><td class="tr" style="color: var(--blue); font-weight: 700; cursor: pointer;">-</td><td class="tr" style="font-weight:700;color:var(--blue)">R$ 0,00</td><td class="tr" style="font-weight:700;color:var(--blue)">R$ 393.615,00</td></tr><tr><td style="white-space:nowrap;font-family:DM Mono,monospace;font-size:11px">13/04 a 17/04</td><td class="tr" style="color: var(--red); cursor: pointer;">-</td><td class="tr" style="color: rgb(192, 80, 48); cursor: pointer;">-</td><td class="tr" style="color: var(--red); font-weight: 700; cursor: pointer;">-</td><td class="tr" style="color: rgb(42, 77, 128); cursor: pointer;">-</td><td class="tr" style="color: var(--blue); cursor: pointer;">-</td><td class="tr" style="color: var(--blue); font-weight: 700; cursor: pointer;">-</td><td class="tr" style="font-weight:700;color:var(--blue)">R$ 0,00</td><td class="tr" style="font-weight:700;color:var(--blue)">R$ 393.615,00</td></tr><tr><td style="white-space:nowrap;font-family:DM Mono,monospace;font-size:11px">20/04 a 24/04</td><td class="tr" style="color: var(--red); cursor: pointer;">-</td><td class="tr" style="color: rgb(192, 80, 48); cursor: pointer;">-</td><td class="tr" style="color: var(--red); font-weight: 700; cursor: pointer;">-</td><td class="tr" style="color: rgb(42, 77, 128); cursor: pointer;">-</td><td class="tr" style="color: var(--blue); cursor: pointer;">-</td><td class="tr" style="color: var(--blue); font-weight: 700; cursor: pointer;">-</td><td class="tr" style="font-weight:700;color:var(--blue)">R$ 0,00</td><td class="tr" style="font-weight:700;color:var(--blue)">R$ 393.615,00</td></tr><tr><td style="white-space:nowrap;font-family:DM Mono,monospace;font-size:11px">27/04 a 30/04</td><td class="tr" style="color: var(--red); cursor: pointer;">-</td><td class="tr" style="color: rgb(192, 80, 48); cursor: pointer;">-</td><td class="tr" style="color: var(--red); font-weight: 700; cursor: pointer;">-</td><td class="tr" style="color: rgb(42, 77, 128); cursor: pointer;">-</td><td class="tr" style="color: var(--blue); cursor: pointer;">-</td><td class="tr" style="color: var(--blue); font-weight: 700; cursor: pointer;">-</td><td class="tr" style="font-weight:700;color:var(--blue)">R$ 0,00</td><td class="tr" style="font-weight:700;color:var(--blue)">R$ 393.615,00</td></tr><tr><td style="white-space:nowrap;font-family:DM Mono,monospace;font-size:11px">04/05 a 08/05</td><td class="tr" style="color: var(--red); cursor: pointer;">-</td><td class="tr" style="color: rgb(192, 80, 48); cursor: pointer;">-</td><td class="tr" style="color: var(--red); font-weight: 700; cursor: pointer;">-</td><td class="tr" style="color: rgb(42, 77, 128); cursor: pointer;">-</td><td class="tr" style="color: var(--blue); cursor: pointer;">-</td><td class="tr" style="color: var(--blue); font-weight: 700; cursor: pointer;">-</td><td class="tr" style="font-weight:700;color:var(--blue)">R$ 0,00</td><td class="tr" style="font-weight:700;color:var(--blue)">R$ 393.615,00</td></tr><tr><td style="white-space:nowrap;font-family:DM Mono,monospace;font-size:11px">11/05 a 15/05</td><td class="tr" style="color: var(--red); cursor: pointer;">-</td><td class="tr" style="color: rgb(192, 80, 48); cursor: pointer;">-</td><td class="tr" style="color: var(--red); font-weight: 700; cursor: pointer;">-</td><td class="tr" style="color: rgb(42, 77, 128); cursor: pointer;">-</td><td class="tr" style="color: var(--blue); cursor: pointer;">-</td><td class="tr" style="color: var(--blue); font-weight: 700; cursor: pointer;">-</td><td class="tr" style="font-weight:700;color:var(--blue)">R$ 0,00</td><td class="tr" style="font-weight:700;color:var(--blue)">R$ 393.615,00</td></tr></tbody>
+          <tbody id="fluxo-body"><tr style="background: rgb(253, 242, 238); font-weight: 600;"><td style="white-space:nowrap;font-family:DM Mono,monospace;font-size:11px">06/04 a 10/04</td><td class="tr" style="color: var(--red); cursor: pointer;">-</td><td class="tr" style="color: rgb(192, 80, 48); cursor: pointer;">-</td><td class="tr" style="color: var(--red); font-weight: 700; cursor: pointer;">-</td><td class="tr" style="color: rgb(42, 77, 128); cursor: pointer;">-</td><td class="tr" style="color: var(--blue); cursor: pointer;">-</td><td class="tr" style="color: var(--blue); font-weight: 700; cursor: pointer;">-</td><td class="tr" style="font-weight:700;color:var(--blue)">R$ 0,00</td><td class="tr" style="font-weight:700;color:var(--blue)">R$ 0,00</td></tr><tr><td style="white-space:nowrap;font-family:DM Mono,monospace;font-size:11px">13/04 a 17/04</td><td class="tr" style="color: var(--red); cursor: pointer;">-</td><td class="tr" style="color: rgb(192, 80, 48); cursor: pointer;">-</td><td class="tr" style="color: var(--red); font-weight: 700; cursor: pointer;">-</td><td class="tr" style="color: rgb(42, 77, 128); cursor: pointer;">-</td><td class="tr" style="color: var(--blue); cursor: pointer;">-</td><td class="tr" style="color: var(--blue); font-weight: 700; cursor: pointer;">-</td><td class="tr" style="font-weight:700;color:var(--blue)">R$ 0,00</td><td class="tr" style="font-weight:700;color:var(--blue)">R$ 0,00</td></tr><tr><td style="white-space:nowrap;font-family:DM Mono,monospace;font-size:11px">20/04 a 24/04</td><td class="tr" style="color: var(--red); cursor: pointer;">-</td><td class="tr" style="color: rgb(192, 80, 48); cursor: pointer;">-</td><td class="tr" style="color: var(--red); font-weight: 700; cursor: pointer;">-</td><td class="tr" style="color: rgb(42, 77, 128); cursor: pointer;">-</td><td class="tr" style="color: var(--blue); cursor: pointer;">-</td><td class="tr" style="color: var(--blue); font-weight: 700; cursor: pointer;">-</td><td class="tr" style="font-weight:700;color:var(--blue)">R$ 0,00</td><td class="tr" style="font-weight:700;color:var(--blue)">R$ 0,00</td></tr><tr><td style="white-space:nowrap;font-family:DM Mono,monospace;font-size:11px">27/04 a 30/04</td><td class="tr" style="color: var(--red); cursor: pointer;">-</td><td class="tr" style="color: rgb(192, 80, 48); cursor: pointer;">-</td><td class="tr" style="color: var(--red); font-weight: 700; cursor: pointer;">-</td><td class="tr" style="color: rgb(42, 77, 128); cursor: pointer;">-</td><td class="tr" style="color: var(--blue); cursor: pointer;">-</td><td class="tr" style="color: var(--blue); font-weight: 700; cursor: pointer;">-</td><td class="tr" style="font-weight:700;color:var(--blue)">R$ 0,00</td><td class="tr" style="font-weight:700;color:var(--blue)">R$ 0,00</td></tr><tr><td style="white-space:nowrap;font-family:DM Mono,monospace;font-size:11px">04/05 a 08/05</td><td class="tr" style="color: var(--red); cursor: pointer;">-</td><td class="tr" style="color: rgb(192, 80, 48); cursor: pointer;">-</td><td class="tr" style="color: var(--red); font-weight: 700; cursor: pointer;">-</td><td class="tr" style="color: rgb(42, 77, 128); cursor: pointer;">-</td><td class="tr" style="color: var(--blue); cursor: pointer;">-</td><td class="tr" style="color: var(--blue); font-weight: 700; cursor: pointer;">-</td><td class="tr" style="font-weight:700;color:var(--blue)">R$ 0,00</td><td class="tr" style="font-weight:700;color:var(--blue)">R$ 0,00</td></tr><tr><td style="white-space:nowrap;font-family:DM Mono,monospace;font-size:11px">11/05 a 15/05</td><td class="tr" style="color: var(--red); cursor: pointer;">-</td><td class="tr" style="color: rgb(192, 80, 48); cursor: pointer;">-</td><td class="tr" style="color: var(--red); font-weight: 700; cursor: pointer;">-</td><td class="tr" style="color: rgb(42, 77, 128); cursor: pointer;">-</td><td class="tr" style="color: var(--blue); cursor: pointer;">-</td><td class="tr" style="color: var(--blue); font-weight: 700; cursor: pointer;">-</td><td class="tr" style="font-weight:700;color:var(--blue)">R$ 0,00</td><td class="tr" style="font-weight:700;color:var(--blue)">R$ 0,00</td></tr></tbody>
           <!-- Toggle row -->
           <tbody id="fluxo-toggle-row">
             <tr>
@@ -529,7 +529,7 @@ tr:hover td{background:var(--surface2);}
             </tr>
           </tbody>
           <!-- Extended weeks 7-12 (hidden by default) -->
-          <tbody id="fluxo-ext-body" style="display: none;"></tbody>
+          <tbody id="fluxo-ext-body" style="display:none"></tbody>
         </table>
       </div>
 
@@ -544,7 +544,7 @@ tr:hover td{background:var(--surface2);}
             <th class="tr">Saldo do Dia</th>
             <th class="tr">Saldo Acumulado</th>
           </tr></thead>
-          <tbody id="fluxo15-body"><tr style="background: rgb(253, 242, 238); font-weight: 600;"><td style="font-family:DM Mono,monospace;font-size:11px;white-space:nowrap">Qua 08/04</td><td class="tr" style="color: var(--red); cursor: pointer;">-</td><td class="tr" style="color: var(--blue); cursor: pointer;">-</td><td class="tr" style="font-weight:700;color:var(--blue)">R$ 0,00</td><td class="tr" style="font-weight:700;color:var(--blue)">R$ 393.615,00</td></tr><tr><td style="font-family:DM Mono,monospace;font-size:11px;white-space:nowrap">Qui 09/04</td><td class="tr" style="color: var(--red); cursor: pointer;">-</td><td class="tr" style="color: var(--blue); cursor: pointer;">-</td><td class="tr" style="font-weight:700;color:var(--blue)">R$ 0,00</td><td class="tr" style="font-weight:700;color:var(--blue)">R$ 393.615,00</td></tr><tr><td style="font-family:DM Mono,monospace;font-size:11px;white-space:nowrap">Sex 10/04</td><td class="tr" style="color: var(--red); cursor: pointer;">-</td><td class="tr" style="color: var(--blue); cursor: pointer;">-</td><td class="tr" style="font-weight:700;color:var(--blue)">R$ 0,00</td><td class="tr" style="font-weight:700;color:var(--blue)">R$ 393.615,00</td></tr><tr><td style="font-family:DM Mono,monospace;font-size:11px;white-space:nowrap">Seg 13/04</td><td class="tr" style="color: var(--red); cursor: pointer;">-</td><td class="tr" style="color: var(--blue); cursor: pointer;">-</td><td class="tr" style="font-weight:700;color:var(--blue)">R$ 0,00</td><td class="tr" style="font-weight:700;color:var(--blue)">R$ 393.615,00</td></tr><tr><td style="font-family:DM Mono,monospace;font-size:11px;white-space:nowrap">Ter 14/04</td><td class="tr" style="color: var(--red); cursor: pointer;">-</td><td class="tr" style="color: var(--blue); cursor: pointer;">-</td><td class="tr" style="font-weight:700;color:var(--blue)">R$ 0,00</td><td class="tr" style="font-weight:700;color:var(--blue)">R$ 393.615,00</td></tr><tr><td style="font-family:DM Mono,monospace;font-size:11px;white-space:nowrap">Qua 15/04</td><td class="tr" style="color: var(--red); cursor: pointer;">-</td><td class="tr" style="color: var(--blue); cursor: pointer;">-</td><td class="tr" style="font-weight:700;color:var(--blue)">R$ 0,00</td><td class="tr" style="font-weight:700;color:var(--blue)">R$ 393.615,00</td></tr><tr><td style="font-family:DM Mono,monospace;font-size:11px;white-space:nowrap">Qui 16/04</td><td class="tr" style="color: var(--red); cursor: pointer;">-</td><td class="tr" style="color: var(--blue); cursor: pointer;">-</td><td class="tr" style="font-weight:700;color:var(--blue)">R$ 0,00</td><td class="tr" style="font-weight:700;color:var(--blue)">R$ 393.615,00</td></tr><tr><td style="font-family:DM Mono,monospace;font-size:11px;white-space:nowrap">Sex 17/04</td><td class="tr" style="color: var(--red); cursor: pointer;">-</td><td class="tr" style="color: var(--blue); cursor: pointer;">-</td><td class="tr" style="font-weight:700;color:var(--blue)">R$ 0,00</td><td class="tr" style="font-weight:700;color:var(--blue)">R$ 393.615,00</td></tr><tr><td style="font-family:DM Mono,monospace;font-size:11px;white-space:nowrap">Seg 20/04</td><td class="tr" style="color: var(--red); cursor: pointer;">-</td><td class="tr" style="color: var(--blue); cursor: pointer;">-</td><td class="tr" style="font-weight:700;color:var(--blue)">R$ 0,00</td><td class="tr" style="font-weight:700;color:var(--blue)">R$ 393.615,00</td></tr><tr><td style="font-family:DM Mono,monospace;font-size:11px;white-space:nowrap">Qua 22/04</td><td class="tr" style="color: var(--red); cursor: pointer;">-</td><td class="tr" style="color: var(--blue); cursor: pointer;">-</td><td class="tr" style="font-weight:700;color:var(--blue)">R$ 0,00</td><td class="tr" style="font-weight:700;color:var(--blue)">R$ 393.615,00</td></tr></tbody>
+          <tbody id="fluxo15-body"><tr style="background: rgb(253, 242, 238); font-weight: 600;"><td style="font-family:DM Mono,monospace;font-size:11px;white-space:nowrap">Qua 08/04</td><td class="tr" style="color: var(--red); cursor: pointer;">-</td><td class="tr" style="color: var(--blue); cursor: pointer;">-</td><td class="tr" style="font-weight:700;color:var(--blue)">R$ 0,00</td><td class="tr" style="font-weight:700;color:var(--blue)">R$ 0,00</td></tr><tr><td style="font-family:DM Mono,monospace;font-size:11px;white-space:nowrap">Qui 09/04</td><td class="tr" style="color: var(--red); cursor: pointer;">-</td><td class="tr" style="color: var(--blue); cursor: pointer;">-</td><td class="tr" style="font-weight:700;color:var(--blue)">R$ 0,00</td><td class="tr" style="font-weight:700;color:var(--blue)">R$ 0,00</td></tr><tr><td style="font-family:DM Mono,monospace;font-size:11px;white-space:nowrap">Sex 10/04</td><td class="tr" style="color: var(--red); cursor: pointer;">-</td><td class="tr" style="color: var(--blue); cursor: pointer;">-</td><td class="tr" style="font-weight:700;color:var(--blue)">R$ 0,00</td><td class="tr" style="font-weight:700;color:var(--blue)">R$ 0,00</td></tr><tr><td style="font-family:DM Mono,monospace;font-size:11px;white-space:nowrap">Seg 13/04</td><td class="tr" style="color: var(--red); cursor: pointer;">-</td><td class="tr" style="color: var(--blue); cursor: pointer;">-</td><td class="tr" style="font-weight:700;color:var(--blue)">R$ 0,00</td><td class="tr" style="font-weight:700;color:var(--blue)">R$ 0,00</td></tr><tr><td style="font-family:DM Mono,monospace;font-size:11px;white-space:nowrap">Ter 14/04</td><td class="tr" style="color: var(--red); cursor: pointer;">-</td><td class="tr" style="color: var(--blue); cursor: pointer;">-</td><td class="tr" style="font-weight:700;color:var(--blue)">R$ 0,00</td><td class="tr" style="font-weight:700;color:var(--blue)">R$ 0,00</td></tr><tr><td style="font-family:DM Mono,monospace;font-size:11px;white-space:nowrap">Qua 15/04</td><td class="tr" style="color: var(--red); cursor: pointer;">-</td><td class="tr" style="color: var(--blue); cursor: pointer;">-</td><td class="tr" style="font-weight:700;color:var(--blue)">R$ 0,00</td><td class="tr" style="font-weight:700;color:var(--blue)">R$ 0,00</td></tr><tr><td style="font-family:DM Mono,monospace;font-size:11px;white-space:nowrap">Qui 16/04</td><td class="tr" style="color: var(--red); cursor: pointer;">-</td><td class="tr" style="color: var(--blue); cursor: pointer;">-</td><td class="tr" style="font-weight:700;color:var(--blue)">R$ 0,00</td><td class="tr" style="font-weight:700;color:var(--blue)">R$ 0,00</td></tr><tr><td style="font-family:DM Mono,monospace;font-size:11px;white-space:nowrap">Sex 17/04</td><td class="tr" style="color: var(--red); cursor: pointer;">-</td><td class="tr" style="color: var(--blue); cursor: pointer;">-</td><td class="tr" style="font-weight:700;color:var(--blue)">R$ 0,00</td><td class="tr" style="font-weight:700;color:var(--blue)">R$ 0,00</td></tr><tr><td style="font-family:DM Mono,monospace;font-size:11px;white-space:nowrap">Seg 20/04</td><td class="tr" style="color: var(--red); cursor: pointer;">-</td><td class="tr" style="color: var(--blue); cursor: pointer;">-</td><td class="tr" style="font-weight:700;color:var(--blue)">R$ 0,00</td><td class="tr" style="font-weight:700;color:var(--blue)">R$ 0,00</td></tr><tr><td style="font-family:DM Mono,monospace;font-size:11px;white-space:nowrap">Qua 22/04</td><td class="tr" style="color: var(--red); cursor: pointer;">-</td><td class="tr" style="color: var(--blue); cursor: pointer;">-</td><td class="tr" style="font-weight:700;color:var(--blue)">R$ 0,00</td><td class="tr" style="font-weight:700;color:var(--blue)">R$ 0,00</td></tr></tbody>
           <tbody id="fluxo15-toggle-row">
             <tr>
               <td colspan="5" style="text-align:center;padding:5px;border-top:1px dashed var(--border)">
@@ -552,7 +552,7 @@ tr:hover td{background:var(--surface2);}
               </td>
             </tr>
           </tbody>
-          <tbody id="fluxo15-ext-body" style="display: none;"></tbody>
+          <tbody id="fluxo15-ext-body" style="display:none"></tbody>
         </table>
       </div>
             <!-- ── PAINÉIS ────────────────────────────────────────────── -->
@@ -561,7 +561,7 @@ tr:hover td{background:var(--surface2);}
         <!-- Top Fornecedores -->
         <div class="panel-card">
           <div class="panel-hdr">
-            <h3>Top Fornecedores</h3><small id="plano-forn-total-lbl">0 fornecedores</small>
+            <h3>Top Fornecedores</h3><small id="plano-forn-total-lbl">1 fornecedores</small>
             <button class="btn-xs" onclick="exportPlanoFornExcel()" style="margin-left:auto">Exportar</button>
           </div>
           <div class="panel-table-wrap">
@@ -571,7 +571,7 @@ tr:hover td{background:var(--surface2);}
                 <th style="text-align:center;width:10%">#</th>
                 <th class="tr" style="width:35%">Vencido</th>
               </tr></thead>
-              <tbody id="plano-forn-body"></tbody>
+              <tbody id="plano-forn-body"><tr style="cursor: pointer;"><td title="JESUINO FORTUNATO DE OLIVEIRA" style="color:var(--red);text-decoration:underline;max-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">JESUINO FORTUNATO DE OLIVEIR…</td><td style="text-align:center;font-family:DM Mono,monospace">1</td><td class="tr" style="color:var(--red)">(R$ 120,00)</td></tr></tbody>
             </table>
             <div class="empty" id="plano-forn-empty" style="display:none">Nenhum fornecedor.</div>
           </div>
@@ -580,7 +580,7 @@ tr:hover td{background:var(--surface2);}
         <!-- Top Clientes -->
         <div class="panel-card">
           <div class="panel-hdr">
-            <h3>Top Clientes</h3><small id="cli-total-lbl">0 clientes</small>
+            <h3>Top Clientes</h3><small id="cli-total-lbl">1 clientes</small>
             <button class="btn-xs" onclick="exportPanelExcel('cli')" style="margin-left:auto">Exportar</button>
           </div>
           <div class="panel-table-wrap">
@@ -590,7 +590,7 @@ tr:hover td{background:var(--surface2);}
                 <th style="text-align:center;width:10%">#</th>
                 <th class="tr" style="width:35%">Vencido</th>
               </tr></thead>
-              <tbody id="cli-body"></tbody>
+              <tbody id="cli-body"><tr style="cursor: pointer;"><td title="SANTANDER (101)" style="color:var(--blue);text-decoration:underline;max-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">SANTANDER (101)</td><td style="text-align:center;font-family:DM Mono,monospace">1</td><td class="tr" style="color:var(--blue)">R$ 30.000,00</td></tr></tbody>
             </table>
             <div class="empty" id="cli-empty" style="display:none">Nenhum cliente.</div>
           </div>
@@ -599,7 +599,7 @@ tr:hover td{background:var(--surface2);}
         <!-- Top Planos Financeiros -->
         <div class="panel-card">
           <div class="panel-hdr">
-            <h3>Top Planos Financeiros</h3><small id="plano-resumo-lbl">0 planos</small>
+            <h3>Top Planos Financeiros</h3><small id="plano-resumo-lbl">1 planos</small>
             <button class="btn-xs" onclick="exportPlanoResumoExcel()" style="margin-left:auto">Exportar</button>
           </div>
           <div class="panel-table-wrap">
@@ -609,7 +609,7 @@ tr:hover td{background:var(--surface2);}
                 <th style="text-align:center;width:10%">#</th>
                 <th class="tr" style="width:35%">Vencido</th>
               </tr></thead>
-              <tbody id="plano-resumo-body"></tbody>
+              <tbody id="plano-resumo-body"><tr><td title="2010317 - Empreitada Full Service" style="color:var(--ink2);max-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">2010317 - Empreitada Full Serv…</td><td style="text-align:center;font-family:DM Mono,monospace">1</td><td class="tr" style="color:var(--red)">(R$ 120,00)</td></tr></tbody>
             </table>
             <div class="empty" id="plano-resumo-empty" style="display:none">Nenhum plano.</div>
           </div>
@@ -1526,7 +1526,7 @@ function renderFornAberto(dp){
 function renderClientesAberto(dr){
   const agg={};
   dr.forEach(r=>{const c=r.cliente||'—';if(!agg[c])agg[c]={emp:r.empresa||'',v:0,a:0,tot:0,c:0};r.status==='VENCIDO'?agg[c].v+=r.valor:agg[c].a+=r.valor;agg[c].tot+=r.valor;agg[c].c++;});
-  const sorted=Object.entries(agg).sort((a,b)=>b[1].tot-a[1].tot);
+  const sorted=Object.entries(agg).sort((a,b)=>b[1].v-a[1].v);
   const tbody=document.getElementById('cli-body');if(!tbody)return;tbody.innerHTML='';
   sorted.forEach(([c,o])=>{
     const tr=document.createElement('tr');tr.style.cursor='pointer';
@@ -1856,7 +1856,7 @@ function renderPlanoFornPanel(dp){
     r.status==='VENCIDO'?agg[r.fornecedor].v+=r.valor:agg[r.fornecedor].a+=r.valor;
     agg[r.fornecedor].tot+=r.valor;agg[r.fornecedor].c++;
   });
-  const sorted=Object.entries(agg).sort((a,b)=>a[1].tot-b[1].tot);
+  const sorted=Object.entries(agg).sort((a,b)=>b[1].v-a[1].v);
   const tbody=document.getElementById('plano-forn-body');if(!tbody)return;tbody.innerHTML='';
   sorted.forEach(([f,o])=>{
     const tr=document.createElement('tr');tr.style.cursor='pointer';
@@ -1877,7 +1877,7 @@ function renderPlanoResumoPanel(dp){
     r.status==='VENCIDO'?agg[p].v+=r.valor:agg[p].a+=r.valor;
     agg[p].tot+=r.valor;agg[p].c++;
   });
-  const sorted=Object.entries(agg).sort((a,b)=>a[1].tot-b[1].tot);
+  const sorted=Object.entries(agg).sort((a,b)=>b[1].v-a[1].v);
   const tbody=document.getElementById('plano-resumo-body');if(!tbody)return;tbody.innerHTML='';
   sorted.forEach(([p,o])=>{
     const tr=document.createElement('tr');
