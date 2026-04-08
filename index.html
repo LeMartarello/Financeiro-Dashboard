@@ -346,14 +346,14 @@ tr:hover td{background:var(--surface2);}
   </div>
   <nav class="sidebar-nav">
     <div class="nav-section-lbl">Navegação</div>
-    <div class="nav-item" onclick="showPage('dash-plano',this)"><span class="nav-icon">📊</span>Dashboard</div>
+    <div class="nav-item active" onclick="showPage('dash-plano',this)"><span class="nav-icon">📊</span>Dashboard</div>
 <div class="nav-item" onclick="showPage('base-pagar',this)"><span class="nav-icon">📋</span>Base Completa — Pagar</div>
 <div class="nav-item" onclick="showPage('base-receber',this)"><span class="nav-icon">📥</span>Base Completa — Receber</div>
-<div class="nav-item active" onclick="showPage('orig-bases',this)"><span class="nav-icon">⬆</span>Atualizar Bases</div>
+<div class="nav-item" onclick="showPage('orig-bases',this)"><span class="nav-icon">⬆</span>Atualizar Bases</div>
   </nav>
   <div class="sidebar-footer">
     <div style="font-size:10px;color:var(--ink3);font-family:'DM Mono',monospace" id="nav-ref">Ref. —</div>
-    <div style="font-size:10px;color:var(--ink3);font-family:'DM Mono',monospace;margin-top:1px" id="nav-count">1 + 1 títulos</div>
+    <div style="font-size:10px;color:var(--ink3);font-family:'DM Mono',monospace;margin-top:1px" id="nav-count">— títulos</div>
   </div>
 </div>
 
@@ -365,7 +365,7 @@ tr:hover td{background:var(--surface2);}
   <!-- TOPBAR -->
   <div class="topbar">
     <div class="topbar-left">
-      <span class="topbar-title" id="topbar-title">Atualizar Bases</span>
+      <span class="topbar-title" id="topbar-title">Dashboard</span>
     </div>
     <div class="topbar-right">
       <button class="btn-export" onclick="exportarVersaoAtualizada()" >⬇ Exportar versão atualizada</button>
@@ -385,7 +385,7 @@ tr:hover td{background:var(--surface2);}
 </div>
 
   <!-- ── DASHBOARD PAGE (filter panel + content) ──────── -->
-  <div class="page" id="page-dash-plano">
+  <div class="page active" id="page-dash-plano">
     <!-- Filter panel -->
     <div class="filter-panel" id="filter-panel">
       <div class="profile-card">
@@ -569,7 +569,7 @@ tr:hover td{background:var(--surface2);}
               <thead><tr>
                 <th style="width:55%">Fornecedor</th>
                 <th style="text-align:center;width:10%">#</th>
-                <th class="tr" style="width:35%">Vencido</th>
+                <th class="tr" style="width:35%">Valor</th>
               </tr></thead>
               <tbody id="plano-forn-body"><tr style="cursor: pointer;"><td title="JESUINO FORTUNATO DE OLIVEIRA" style="color:var(--red);text-decoration:underline;max-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">JESUINO FORTUNATO DE OLIVEIR…</td><td style="text-align:center;font-family:DM Mono,monospace">1</td><td class="tr" style="color:var(--red)">(R$ 120,00)</td></tr></tbody>
             </table>
@@ -588,7 +588,7 @@ tr:hover td{background:var(--surface2);}
               <thead><tr>
                 <th style="width:55%">Cliente</th>
                 <th style="text-align:center;width:10%">#</th>
-                <th class="tr" style="width:35%">Vencido</th>
+                <th class="tr" style="width:35%">Valor</th>
               </tr></thead>
               <tbody id="cli-body"><tr style="cursor: pointer;"><td title="SANTANDER (101)" style="color:var(--blue);text-decoration:underline;max-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">SANTANDER (101)</td><td style="text-align:center;font-family:DM Mono,monospace">1</td><td class="tr" style="color:var(--blue)">R$ 30.000,00</td></tr></tbody>
             </table>
@@ -607,9 +607,9 @@ tr:hover td{background:var(--surface2);}
               <thead><tr>
                 <th style="width:55%">Plano Financeiro</th>
                 <th style="text-align:center;width:10%">#</th>
-                <th class="tr" style="width:35%">Vencido</th>
+                <th class="tr" style="width:35%">Valor</th>
               </tr></thead>
-              <tbody id="plano-resumo-body"><tr><td title="2010317 - Empreitada Full Service" style="color:var(--ink2);max-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">2010317 - Empreitada Full Serv…</td><td style="text-align:center;font-family:DM Mono,monospace">1</td><td class="tr" style="color:var(--red)">(R$ 120,00)</td></tr></tbody>
+              <tbody id="plano-resumo-body"><tr style="cursor: pointer;"><td title="2010317 - Empreitada Full Service" style="color:var(--accent);text-decoration:underline;max-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">2010317 - Empreitada Full Serv…</td><td style="text-align:center;font-family:DM Mono,monospace">1</td><td class="tr" style="color:var(--red)">(R$ 120,00)</td></tr></tbody>
             </table>
             <div class="empty" id="plano-resumo-empty" style="display:none">Nenhum plano.</div>
           </div>
@@ -653,7 +653,7 @@ tr:hover td{background:var(--surface2);}
 </div>
 
   <!-- ── ATUALIZAR BASES ───────────────────────────────── -->
-  <div class="page active" id="page-orig-bases">
+  <div class="page" id="page-orig-bases">
   <div class="orig-content">
 
     <!-- Upload zone -->
@@ -678,12 +678,12 @@ tr:hover td{background:var(--surface2);}
       <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);padding:14px 16px;box-shadow:var(--shadow)">
         <div style="font-size:9px;font-weight:600;color:var(--accent);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;font-family:'DM Mono',monospace">Contas a Pagar</div>
         <div style="font-weight:600;color:var(--red);font-size:12px;margin-bottom:2px;font-family:'DM Mono',monospace" id="cur-name-pagar">pagar limpa.csv</div>
-        <div style="color:var(--ink3);font-size:11px;font-family:'DM Mono',monospace" id="cur-meta-pagar">1 títulos | 08/04/2026</div>
+        <div style="color:var(--ink3);font-size:11px;font-family:'DM Mono',monospace" id="cur-meta-pagar">1 títulos | 02/04/2026</div>
       </div>
       <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);padding:14px 16px;box-shadow:var(--shadow)">
         <div style="font-size:9px;font-weight:600;color:var(--blue);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;font-family:'DM Mono',monospace">Contas a Receber</div>
         <div style="font-weight:600;color:var(--blue);font-size:12px;margin-bottom:2px;font-family:'DM Mono',monospace" id="cur-name-receber">receber limpa.csv</div>
-        <div style="color:var(--ink3);font-size:11px;font-family:'DM Mono',monospace" id="cur-meta-receber">1 títulos | 08/04/2026</div>
+        <div style="color:var(--ink3);font-size:11px;font-family:'DM Mono',monospace" id="cur-meta-receber">1 títulos | 02/04/2026</div>
       </div>
     </div>
 
@@ -691,11 +691,11 @@ tr:hover td{background:var(--surface2);}
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
       <div class="hist-card">
         <div class="hist-header"><h3>Log de uploads — Contas a Pagar</h3></div>
-        <div id="log-pagar"><div style="padding: 7px 12px; border-bottom: 1px solid rgb(243, 244, 246); font-size: 11px; display: flex; justify-content: space-between; align-items: center;"><span style="font-weight:600;color:#374151">pagar limpa.csv</span><span style="color:#9CA3AF">1 registros · 08/04/2026</span></div><div style="padding: 7px 12px; border-bottom: 1px solid rgb(243, 244, 246); font-size: 11px; display: flex; justify-content: space-between; align-items: center;"><span style="font-weight:600;color:#374151">a pagar 08.04.csv</span><span style="color:#9CA3AF">5.538 registros · 08/04/2026</span></div><div style="padding: 7px 12px; border-bottom: 1px solid rgb(243, 244, 246); font-size: 11px; display: flex; justify-content: space-between; align-items: center;"><span style="font-weight:600;color:#374151">pagar limpa.csv</span><span style="color:#9CA3AF">1 registros · 02/04/2026</span></div><div style="padding: 7px 12px; border-bottom: 1px solid rgb(243, 244, 246); font-size: 11px; display: flex; justify-content: space-between; align-items: center;"><span style="font-weight:600;color:#374151">contas a pagar-20260402.csv</span><span style="color:#9CA3AF">10.572 registros · 02/04/2026</span></div></div>
+        <div id="log-pagar"><div style="padding: 7px 12px; border-bottom: 1px solid rgb(243, 244, 246); font-size: 11px; display: flex; justify-content: space-between; align-items: center;"><span style="font-weight:600;color:#374151">pagar limpa.csv</span><span style="color:#9CA3AF">1 registros · 02/04/2026</span></div><div style="padding: 7px 12px; border-bottom: 1px solid rgb(243, 244, 246); font-size: 11px; display: flex; justify-content: space-between; align-items: center;"><span style="font-weight:600;color:#374151">contas a pagar-20260402.csv</span><span style="color:#9CA3AF">10.572 registros · 02/04/2026</span></div></div>
       </div>
       <div class="hist-card">
         <div class="hist-header"><h3>Log de uploads — Contas a Receber</h3></div>
-        <div id="log-receber"><div style="padding: 7px 12px; border-bottom: 1px solid rgb(243, 244, 246); font-size: 11px; display: flex; justify-content: space-between; align-items: center;"><span style="font-weight:600;color:#374151">receber limpa.csv</span><span style="color:#9CA3AF">1 registros · 08/04/2026</span></div><div style="padding: 7px 12px; border-bottom: 1px solid rgb(243, 244, 246); font-size: 11px; display: flex; justify-content: space-between; align-items: center;"><span style="font-weight:600;color:#374151">a receber 08.04.csv</span><span style="color:#9CA3AF">1.575 registros · 08/04/2026</span></div><div style="padding: 7px 12px; border-bottom: 1px solid rgb(243, 244, 246); font-size: 11px; display: flex; justify-content: space-between; align-items: center;"><span style="font-weight:600;color:#374151">receber limpa.csv</span><span style="color:#9CA3AF">1 registros · 02/04/2026</span></div><div style="padding: 7px 12px; border-bottom: 1px solid rgb(243, 244, 246); font-size: 11px; display: flex; justify-content: space-between; align-items: center;"><span style="font-weight:600;color:#374151">contas a receber-20260402.csv</span><span style="color:#9CA3AF">1.895 registros · 02/04/2026</span></div></div>
+        <div id="log-receber"><div style="padding: 7px 12px; border-bottom: 1px solid rgb(243, 244, 246); font-size: 11px; display: flex; justify-content: space-between; align-items: center;"><span style="font-weight:600;color:#374151">receber limpa.csv</span><span style="color:#9CA3AF">1 registros · 02/04/2026</span></div><div style="padding: 7px 12px; border-bottom: 1px solid rgb(243, 244, 246); font-size: 11px; display: flex; justify-content: space-between; align-items: center;"><span style="font-weight:600;color:#374151">contas a receber-20260402.csv</span><span style="color:#9CA3AF">1.895 registros · 02/04/2026</span></div></div>
       </div>
     </div>
 
@@ -1526,14 +1526,14 @@ function renderFornAberto(dp){
 function renderClientesAberto(dr){
   const agg={};
   dr.forEach(r=>{const c=r.cliente||'—';if(!agg[c])agg[c]={emp:r.empresa||'',v:0,a:0,tot:0,c:0};r.status==='VENCIDO'?agg[c].v+=r.valor:agg[c].a+=r.valor;agg[c].tot+=r.valor;agg[c].c++;});
-  const sorted=Object.entries(agg).sort((a,b)=>b[1].v-a[1].v);
+  const sorted=Object.entries(agg).sort((a,b)=>b[1].tot-a[1].tot);
   const tbody=document.getElementById('cli-body');if(!tbody)return;tbody.innerHTML='';
   sorted.forEach(([c,o])=>{
     const tr=document.createElement('tr');tr.style.cursor='pointer';
     tr.onclick=()=>openCliTab(c,dr);
     tr.innerHTML=`<td title="${c}" style="color:var(--blue);text-decoration:underline;max-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${trunc(c,28)}</td>`
       +`<td style="text-align:center;font-family:DM Mono,monospace">${o.c}</td>`
-      +`<td class="tr" style="color:var(--blue)">${o.v?fmtPos(o.v):fmtPos(o.tot)}</td>`;
+      +`<td class="tr" style="color:var(--blue)">${fmtPos(o.tot)}</td>`;
     tbody.appendChild(tr);
   });
   const el=document.getElementById('cli-total-lbl');if(el)el.textContent=sorted.length+' clientes';
@@ -1856,14 +1856,14 @@ function renderPlanoFornPanel(dp){
     r.status==='VENCIDO'?agg[r.fornecedor].v+=r.valor:agg[r.fornecedor].a+=r.valor;
     agg[r.fornecedor].tot+=r.valor;agg[r.fornecedor].c++;
   });
-  const sorted=Object.entries(agg).sort((a,b)=>b[1].v-a[1].v);
+  const sorted=Object.entries(agg).sort((a,b)=>a[1].tot-b[1].tot);
   const tbody=document.getElementById('plano-forn-body');if(!tbody)return;tbody.innerHTML='';
   sorted.forEach(([f,o])=>{
     const tr=document.createElement('tr');tr.style.cursor='pointer';
     tr.onclick=()=>openFornTab(f,dp);
     tr.innerHTML=`<td title="${f}" style="color:var(--red);text-decoration:underline;max-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${trunc(f,28)}</td>`
       +`<td style="text-align:center;font-family:DM Mono,monospace">${o.c}</td>`
-      +`<td class="tr" style="color:var(--red)">${o.v?fmtNeg(o.v):fmtNeg(o.tot)}</td>`;
+      +`<td class="tr" style="color:var(--red)">${fmtNeg(o.tot)}</td>`;
     tbody.appendChild(tr);
   });
   const el=document.getElementById('plano-forn-total-lbl');if(el)el.textContent=sorted.length+' fornecedores';
@@ -1877,13 +1877,16 @@ function renderPlanoResumoPanel(dp){
     r.status==='VENCIDO'?agg[p].v+=r.valor:agg[p].a+=r.valor;
     agg[p].tot+=r.valor;agg[p].c++;
   });
-  const sorted=Object.entries(agg).sort((a,b)=>b[1].v-a[1].v);
+  const sorted=Object.entries(agg).sort((a,b)=>a[1].tot-b[1].tot);
   const tbody=document.getElementById('plano-resumo-body');if(!tbody)return;tbody.innerHTML='';
   sorted.forEach(([p,o])=>{
     const tr=document.createElement('tr');
-    tr.innerHTML=`<td title="${p}" style="color:var(--ink2);max-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${trunc(p,30)}</td>`
+    tr.style.cursor='pointer';
+    const _p=p, _dp=dp;
+    tr.onclick=function(){openDetailTabDirect(_dp.filter(function(r){return r.plano_fin===_p;}), 'Plano Financeiro — '+_p, 0, 'pagar');};
+    tr.innerHTML=`<td title="${p}" style="color:var(--accent);text-decoration:underline;max-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${trunc(p,30)}</td>`
       +`<td style="text-align:center;font-family:DM Mono,monospace">${o.c}</td>`
-      +`<td class="tr" style="color:var(--red)">${o.v?fmtNeg(o.v):fmtNeg(o.tot)}</td>`;
+      +`<td class="tr" style="color:var(--red)">${fmtNeg(o.tot)}</td>`;
     tbody.appendChild(tr);
   });
   const el=document.getElementById('plano-resumo-lbl');if(el)el.textContent=sorted.length+' planos';
