@@ -334,6 +334,30 @@ tr:hover td{background:var(--surface2);}
 #fluxo-table tr:hover td { background: var(--surface2); }
 #fluxo-table td { font-size:11px; }
 #fluxo-table td.tr { font-family:'DM Mono',monospace; }
+
+/* ── SEMÁFORO DE CAIXA ───────────────────────────────────────── */
+.sf-dot{display:inline-block;width:7px;height:7px;border-radius:50%;margin-right:5px;vertical-align:middle;flex-shrink:0;}
+.sf-red{background:#c05030;}
+.sf-yellow{background:#d4900a;}
+.sf-green{background:#3a8c50;}
+.sf-row-yellow{background:#fffbea !important;}
+.sf-legend{display:flex;align-items:center;gap:14px;font-size:10px;color:var(--ink3);font-family:'DM Mono',monospace;}
+.sf-legend-item{display:flex;align-items:center;gap:4px;}
+
+/* ── FORNECEDORES CRÍTICOS ───────────────────────────────────── */
+.badge-critico{
+  display:inline-flex;align-items:center;gap:2px;
+  background:#fef3c7;color:#92400e;
+  border:1px solid #fcd34d;border-radius:10px;
+  padding:1px 6px;font-size:9px;font-weight:700;
+  font-family:'DM Mono',monospace;white-space:nowrap;vertical-align:middle;
+}
+.critico-star{
+  background:none;border:none;cursor:pointer;
+  font-size:13px;line-height:1;padding:0 2px;
+  opacity:.5;transition:opacity .15s,transform .15s;
+}
+.critico-star:hover{opacity:1;transform:scale(1.2);}
 </style>
 </head>
 <body>
@@ -436,6 +460,17 @@ tr:hover td{background:var(--surface2);}
         <div class="filter-body" style="max-height:150px"><input class="fsearch" placeholder="Buscar..." oninput="searchF('plano-list',this.value)"><div id="plano-list"><div class="fitem" data-val="2010317 - Empreitada Full Service"><input type="checkbox" checked=""><label title="2010317 - Empreitada Full Service">2010317 - Empreitada Full Service</label><span class="cnt">1</span></div></div></div>
         <div class="filter-actions"><button class="lnk" onclick="selAll('plano')">Todos</button><span style="color:#ddd;margin:0 3px">|</span><button class="lnk" onclick="deselAll('plano')">Nenhum</button></div>
       </div>
+      <div class="fcard">
+        <div class="fcard-hdr"><h3>⭐ Planos Estratégicos</h3><small id="estr-count" style="color:var(--accent)">0 marcados</small></div>
+        <div class="filter-body" style="max-height:150px">
+          <input class="fsearch" placeholder="Buscar plano..." oninput="searchF('estr-list',this.value)">
+          <div id="estr-list"></div>
+          <div id="estr-empty" style="font-size:10px;color:var(--ink3);text-align:center;padding:6px 0;display:block">Carregando planos...</div>
+        </div>
+        <div style="padding:3px 8px 5px;border-top:1px solid var(--border);font-size:9px;color:var(--ink3);font-family:'DM Mono',monospace;letter-spacing:.3px">
+          ☆ marque os planos prioritários para receber badge ⭐
+        </div>
+      </div>
     </div>
     <button class="filter-toggle" id="filter-toggle" onclick="toggleFilter()">◀</button>
     <!-- Chart content -->
@@ -499,12 +534,25 @@ tr:hover td{background:var(--surface2);}
       </div>
 
       <!-- ── FLUXO<!-- ── FLUXO 12 SEMANAS ──────────────────────────────────── -->
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
         <div class="kpi-section-label" style="margin-bottom:0">Fluxo — Próximas 6 Semanas</div>
-        <label style="display:flex;align-items:center;gap:6px;font-size:11px;color:var(--ink3);font-family:'Roboto',sans-serif">
-          Saldo bancário inicial:
-          <input id="saldo-inicial" type="text" placeholder="R$ 0,00" style="width:130px;padding:4px 8px;border:1px solid var(--border);border-radius:var(--r);font-size:11px;color:var(--blue);font-weight:600;background:var(--surface);text-align:right;font-family:'DM Mono',monospace" oninput="onSaldoInput(this)">
-        </label>
+        <div style="display:flex;align-items:center;gap:16px">
+          <label style="display:flex;align-items:center;gap:6px;font-size:11px;color:var(--ink3);font-family:'Roboto',sans-serif">
+            Alerta abaixo de:
+            <input id="saldo-limiar" type="text" placeholder="R$ 0,00" style="width:120px;padding:4px 8px;border:1px solid var(--border);border-radius:var(--r);font-size:11px;color:#d4900a;font-weight:600;background:var(--surface);text-align:right;font-family:'DM Mono',monospace" oninput="onLimiarInput(this)">
+          </label>
+          <label style="display:flex;align-items:center;gap:6px;font-size:11px;color:var(--ink3);font-family:'Roboto',sans-serif">
+            Saldo bancário inicial:
+            <input id="saldo-inicial" type="text" placeholder="R$ 0,00" style="width:130px;padding:4px 8px;border:1px solid var(--border);border-radius:var(--r);font-size:11px;color:var(--blue);font-weight:600;background:var(--surface);text-align:right;font-family:'DM Mono',monospace" oninput="onSaldoInput(this)">
+          </label>
+        </div>
+      </div>
+      <div style="display:flex;align-items:center;justify-content:flex-end;margin-bottom:8px">
+        <div class="sf-legend">
+          <span class="sf-legend-item"><span class="sf-dot sf-green"></span>Saldo positivo</span>
+          <span class="sf-legend-item"><span class="sf-dot sf-yellow"></span>Abaixo do limiar</span>
+          <span class="sf-legend-item"><span class="sf-dot sf-red"></span>Saldo negativo</span>
+        </div>
       </div>
       <div class="panel-card" style="margin-bottom:16px;overflow-x:auto">
         <table id="fluxo-table" style="min-width:900px">
@@ -567,9 +615,10 @@ tr:hover td{background:var(--surface2);}
           <div class="panel-table-wrap">
             <table>
               <thead><tr>
-                <th style="width:55%">Fornecedor</th>
+                <th style="width:50%">Fornecedor</th>
                 <th style="text-align:center;width:10%">#</th>
-                <th class="tr" style="width:35%">Valor</th>
+                <th class="tr" style="width:30%">Valor</th>
+                <th style="width:10%;text-align:center;font-size:11px">⭐</th>
               </tr></thead>
               <tbody id="plano-forn-body"><tr style="cursor: pointer;"><td title="JESUINO FORTUNATO DE OLIVEIRA" style="color:var(--red);text-decoration:underline;max-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">JESUINO FORTUNATO DE OLIVEIR…</td><td style="text-align:center;font-family:DM Mono,monospace">1</td><td class="tr" style="color:var(--red)">(R$ 120,00)</td></tr></tbody>
             </table>
@@ -957,6 +1006,7 @@ function buildFilterLists(){
       elP.appendChild(d);
     });
   }
+  renderEstrategicosPanel();
 }
 function searchF(listId,q){document.getElementById(listId).querySelectorAll('.fitem').forEach(el=>{el.style.display=el.dataset.val.toLowerCase().includes(q.toLowerCase())?'':'none';});}
 function selAll(g){
@@ -1510,12 +1560,13 @@ function renderFornAberto(dp){
   if(!document.getElementById('forn-body')) return;
   const tot=dp.reduce((s,r)=>s+r.valor,0);
   const agg={};
-  dp.forEach(r=>{if(!agg[r.fornecedor])agg[r.fornecedor]={emp:r.empresa,v:0,a:0,tot:0,c:0};r.status==='VENCIDO'?agg[r.fornecedor].v+=r.valor:agg[r.fornecedor].a+=r.valor;agg[r.fornecedor].tot+=r.valor;agg[r.fornecedor].c++;});
+  dp.forEach(r=>{if(!agg[r.fornecedor])agg[r.fornecedor]={emp:r.empresa,v:0,a:0,tot:0,c:0,hasCrit:false};r.status==='VENCIDO'?agg[r.fornecedor].v+=r.valor:agg[r.fornecedor].a+=r.valor;agg[r.fornecedor].tot+=r.valor;agg[r.fornecedor].c++;if(isCritico(r.plano_fin))agg[r.fornecedor].hasCrit=true;});
   const sorted=Object.entries(agg).sort((a,b)=>a[1].tot-b[1].tot);
   const tbody=document.getElementById('forn-body'); tbody.innerHTML='';
   sorted.forEach(([f,o])=>{
+    const isCrit=o.hasCrit;
     const tr=document.createElement('tr'); tr.style.cursor='pointer'; tr.onclick=()=>openFornTab(f,dp);
-    tr.innerHTML=`<td title="${f}" style="color:#7F1D1D;text-decoration:underline">${trunc(f,28)}</td><td>${(o.emp||'').split(' - ')[0]}</td><td style="text-align:center">${o.c}</td><td class="tr" style="color:#7F1D1D">${o.v?fmtNeg(o.v):'-'}</td><td class="tr" style="color:#DC2626">${o.a?fmtNeg(o.a):'-'}</td><td class="tr" style="font-weight:700;color:#7F1D1D">${fmtNeg(o.tot)}</td>`;
+    tr.innerHTML=`<td title="${f}" style="color:#7F1D1D;text-decoration:underline">${isCrit?'<span class="badge-critico">⭐ Crítico</span> ':''}${trunc(f,28)}</td><td>${(o.emp||'').split(' - ')[0]}</td><td style="text-align:center">${o.c}</td><td class="tr" style="color:#7F1D1D">${o.v?fmtNeg(o.v):'-'}</td><td class="tr" style="color:#DC2626">${o.a?fmtNeg(o.a):'-'}</td><td class="tr" style="font-weight:700;color:#7F1D1D">${fmtNeg(o.tot)}</td>`;
     tbody.appendChild(tr);
   });
   document.getElementById('forn-empty').style.display=sorted.length?'none':'block';
@@ -1579,8 +1630,9 @@ function filterBase(t){
     const vStr=isPagar?'(R$ '+fmtAbs(Math.abs(r.valor))+')':'R$ '+fmtAbs(r.valor);
     const vColor=isPagar?'#7F1D1D':'#1E3A8A';
     const nome=isPagar?r.fornecedor:r.cliente;
+    const critBadge=isPagar&&isCritico(r.plano_fin)?'<span class="badge-critico">⭐ Crítico</span> ':'';
     const tr=document.createElement('tr'); tr.innerHTML=isPagar?
-      `<td title="${r.empresa}">${trunc(r.empresa,22)}</td><td title="${nome}">${trunc(nome,28)}</td><td title="${r.obra||''}">${trunc(r.obra||'',18)}</td><td>${r.documento}</td><td title="${TIPOS_DESC[r.tipo_doc]||r.tipo_doc}">${r.tipo_doc}</td><td title="${r.titulo||''}">${trunc(r.titulo||'',18)}</td><td title="${r.plano_fin||''}">${trunc(r.plano_fin||'',22)}</td><td>${fmtDate(r.data)}</td><td>${r.mes}</td><td>${r.ano}</td><td><span class="${sClass}">${sLabel}</span></td><td class="tr" style="color:${vColor}">${vStr}</td>`:
+      `<td title="${r.empresa}">${trunc(r.empresa,22)}</td><td title="${nome}">${critBadge}${trunc(nome,28)}</td><td title="${r.obra||''}">${trunc(r.obra||'',18)}</td><td>${r.documento}</td><td title="${TIPOS_DESC[r.tipo_doc]||r.tipo_doc}">${r.tipo_doc}</td><td title="${r.titulo||''}">${trunc(r.titulo||'',18)}</td><td title="${r.plano_fin||''}">${trunc(r.plano_fin||'',22)}</td><td>${fmtDate(r.data)}</td><td>${r.mes}</td><td>${r.ano}</td><td><span class="${sClass}">${sLabel}</span></td><td class="tr" style="color:${vColor}">${vStr}</td>`:
       `<td title="${r.empresa}">${trunc(r.empresa,22)}</td><td title="${nome}">${trunc(nome,30)}</td><td>${r.documento}</td><td title="${TIPOS_DESC[r.tipo_doc]||r.tipo_doc}">${r.tipo_doc}</td><td>${fmtDate(r.data)}</td><td>${r.mes}</td><td>${r.ano}</td><td><span class="${sClass}">${sLabel}</span></td><td class="tr" style="color:${vColor}">${vStr}</td>`;
     tbody.appendChild(tr);
   });
@@ -1852,18 +1904,28 @@ function buildPlanoYearBody(y,yData,yMax,dp,ano){
 function renderPlanoFornPanel(dp){
   const agg={};
   dp.forEach(r=>{
-    if(!agg[r.fornecedor])agg[r.fornecedor]={v:0,a:0,tot:0,c:0};
+    if(!agg[r.fornecedor])agg[r.fornecedor]={v:0,a:0,tot:0,c:0,hasCrit:false};
     r.status==='VENCIDO'?agg[r.fornecedor].v+=r.valor:agg[r.fornecedor].a+=r.valor;
     agg[r.fornecedor].tot+=r.valor;agg[r.fornecedor].c++;
+    if(isCritico(r.plano_fin)) agg[r.fornecedor].hasCrit=true;
   });
   const sorted=Object.entries(agg).sort((a,b)=>a[1].tot-b[1].tot);
   const tbody=document.getElementById('plano-forn-body');if(!tbody)return;tbody.innerHTML='';
   sorted.forEach(([f,o])=>{
+    const isCrit=o.hasCrit;
     const tr=document.createElement('tr');tr.style.cursor='pointer';
     tr.onclick=()=>openFornTab(f,dp);
-    tr.innerHTML=`<td title="${f}" style="color:var(--red);text-decoration:underline;max-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${trunc(f,28)}</td>`
+    tr.innerHTML=`<td title="${f}" style="color:var(--red);text-decoration:underline;max-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${isCrit?'⭐ ':''}${trunc(f,isCrit?20:28)}</td>`
       +`<td style="text-align:center;font-family:DM Mono,monospace">${o.c}</td>`
-      +`<td class="tr" style="color:var(--red)">${fmtNeg(o.tot)}</td>`;
+      +`<td class="tr" style="color:var(--red)">${fmtNeg(o.tot)}</td>`
+      +`<td style="text-align:center;padding:0 2px"></td>`;
+    const starTd=tr.lastElementChild;
+    const starBtn=document.createElement('button');
+    starBtn.className='critico-star';
+    starBtn.title=isCrit?'Remover dos críticos':'Marcar como crítico';
+    starBtn.textContent=isCrit?'⭐':'☆';
+    starBtn.addEventListener('click',function(e){e.stopPropagation();toggleCritico(f);});
+    starTd.appendChild(starBtn);
     tbody.appendChild(tr);
   });
   const el=document.getElementById('plano-forn-total-lbl');if(el)el.textContent=sorted.length+' fornecedores';
@@ -3210,6 +3272,7 @@ function renderFluxo() {
     var tr = document.createElement('tr');
     if(isCurrentWeek) tr.style.cssText='background:#fdf2ee;font-weight:600';
     if(isNegSaldo || isNegAcum) tr.style.background='#fdf0eb';
+    else if(getSaldoLimiar() > 0 && saldoAcum < getSaldoLimiar()) tr.style.background='#fffbea';
 
     tr.innerHTML =
       '<td style="white-space:nowrap;font-family:DM Mono,monospace;font-size:11px">'+semLbl+'</td>'
@@ -3222,7 +3285,7 @@ function renderFluxo() {
       +'<td class="tr" style="font-weight:700;color:'+(saldoSem>=0?'var(--blue)':'var(--red)')+'">'+
         (saldoSem>=0?fmtPos(saldoSem):fmtNeg(saldoSem))+'</td>'
       +'<td class="tr" style="font-weight:700;color:'+(saldoAcum>=0?'var(--blue)':'var(--red)')+'">'+
-        (saldoAcum>=0?fmtPos(saldoAcum):fmtNeg(saldoAcum))+'</td>';
+        semDot(saldoAcum,getSaldoLimiar())+(saldoAcum>=0?fmtPos(saldoAcum):fmtNeg(saldoAcum))+'</td>';
 
     // Click handlers for each value cell
     (function(sem_, dp_, dr_){
@@ -3245,6 +3308,102 @@ function onSaldoInput(el) {
   var num = parseInt(raw, 10) / 100;
   el.value = 'R$ ' + num.toLocaleString('pt-BR', {minimumFractionDigits:2, maximumFractionDigits:2});
   renderFluxo(); renderFluxo15();
+}
+
+function onLimiarInput(el) {
+  var raw = el.value.replace(/[^0-9]/g, '');
+  if (!raw) { el.value = ''; renderFluxo(); renderFluxo15(); _reRenderExt(); return; }
+  var num = parseInt(raw, 10) / 100;
+  el.value = 'R$ ' + num.toLocaleString('pt-BR', {minimumFractionDigits:2, maximumFractionDigits:2});
+  renderFluxo(); renderFluxo15(); _reRenderExt();
+}
+
+function _reRenderExt() {
+  var extSem = document.getElementById('fluxo-ext-body');
+  if (extSem && extSem.style.display !== 'none') renderFluxoExt();
+  var ext15 = document.getElementById('fluxo15-ext-body');
+  if (ext15 && ext15.style.display !== 'none') renderFluxo15Ext();
+}
+
+function getSaldoLimiar() {
+  var el = document.getElementById('saldo-limiar');
+  if (!el || !el.value) return 0;
+  return parseFloat(el.value.replace(/[R$\s.]/g,'').replace(',','.')) || 0;
+}
+
+function semDot(saldoAcum, limiar) {
+  var cls = saldoAcum < 0 ? 'sf-red' : (limiar > 0 && saldoAcum < limiar ? 'sf-yellow' : 'sf-green');
+  return '<span class="sf-dot '+cls+'"></span>';
+}
+
+// ══════════════════════════════════════════════════════════════
+// PLANOS ESTRATÉGICOS
+// ══════════════════════════════════════════════════════════════
+var CRITICOS_SET = new Set();
+
+function loadCriticos() {
+  try {
+    var saved = localStorage.getItem('fin_criticos_v1');
+    if (saved) { var arr = JSON.parse(saved); arr.forEach(function(n){ CRITICOS_SET.add(n); }); }
+  } catch(e) {}
+  renderEstrategicosPanel();
+}
+
+function saveCriticos() {
+  try { localStorage.setItem('fin_criticos_v1', JSON.stringify([...CRITICOS_SET])); } catch(e) {}
+}
+
+function isCritico(plano) {
+  if (!plano || !CRITICOS_SET.size) return false;
+  return CRITICOS_SET.has(plano.trim().toUpperCase());
+}
+
+function toggleCritico(plano) {
+  var key = plano.trim().toUpperCase();
+  if (CRITICOS_SET.has(key)) CRITICOS_SET.delete(key);
+  else CRITICOS_SET.add(key);
+  saveCriticos();
+  renderEstrategicosPanel();
+  updateAll();
+}
+
+function renderEstrategicosPanel() {
+  var list  = document.getElementById('estr-list');
+  var empty = document.getElementById('estr-empty');
+  var count = document.getElementById('estr-count');
+  if (!list) return;
+  list.innerHTML = '';
+  // allPlanos may not be ready yet
+  var planos = (typeof allPlanos !== 'undefined' && allPlanos.length) ? allPlanos : [];
+  if (count) count.textContent = CRITICOS_SET.size + ' marcados';
+  if (!planos.length) { if (empty) { empty.textContent = 'Carregue uma base para ver os planos.'; empty.style.display = 'block'; } return; }
+  if (empty) empty.style.display = 'none';
+  planos.forEach(function(p) {
+    var isCrit = isCritico(p);
+    var cnt = (typeof RAW_PAGAR !== 'undefined') ? RAW_PAGAR.filter(function(r){ return r.plano_fin === p; }).length : 0;
+    var item = document.createElement('div');
+    item.className = 'fitem'; item.dataset.val = p;
+    item.style.cssText = isCrit ? 'background:#fef9ec;border-radius:4px' : '';
+    // Star button
+    var starBtn = document.createElement('button');
+    starBtn.className = 'critico-star';
+    starBtn.style.cssText = 'opacity:' + (isCrit ? '1' : '.35') + ';font-size:12px;margin-right:2px';
+    starBtn.textContent = isCrit ? '⭐' : '☆';
+    starBtn.title = isCrit ? 'Remover dos estratégicos' : 'Marcar como estratégico';
+    starBtn.addEventListener('click', function(e) { e.stopPropagation(); toggleCritico(p); });
+    // Label
+    var lbl = document.createElement('label');
+    lbl.title = p; lbl.style.cssText = 'flex:1;cursor:pointer;' + (isCrit ? 'font-weight:600;color:var(--accent)' : '');
+    lbl.textContent = trunc(p, 30);
+    lbl.addEventListener('click', function() { toggleCritico(p); });
+    // Count
+    var sp = document.createElement('span');
+    sp.className = 'cnt'; sp.textContent = cnt;
+    item.appendChild(starBtn);
+    item.appendChild(lbl);
+    item.appendChild(sp);
+    list.appendChild(item);
+  });
 }
 
 function renderFluxo15() {
@@ -3287,6 +3446,7 @@ function renderFluxo15() {
       var tr = document.createElement('tr');
       if(isToday) tr.style.cssText = 'background:#fdf2ee;font-weight:600';
       if(saldoAcum < 0 || saldoDia < 0) tr.style.background = '#fdf0eb';
+      else if(getSaldoLimiar() > 0 && saldoAcum < getSaldoLimiar()) tr.style.background = '#fffbea';
 
       var dayLbl = DAY_NAMES[dow]+' '+pad(cur.getDate())+'/'+pad(cur.getMonth()+1);
 
@@ -3297,7 +3457,7 @@ function renderFluxo15() {
         +'<td class="tr" style="font-weight:700;color:'+(saldoDia>=0?'var(--blue)':'var(--red)')+'">'+
           (saldoDia>=0?fmtPos(saldoDia):fmtNeg(saldoDia))+'</td>'
         +'<td class="tr" style="font-weight:700;color:'+(saldoAcum>=0?'var(--blue)':'var(--red)')+'">'+
-          (saldoAcum>=0?fmtPos(saldoAcum):fmtNeg(saldoAcum))+'</td>';
+          semDot(saldoAcum,getSaldoLimiar())+(saldoAcum>=0?fmtPos(saldoAcum):fmtNeg(saldoAcum))+'</td>';
 
       // Click to open detail
       (function(d, dp_, dr_){
@@ -3390,6 +3550,7 @@ function renderFluxoExt() {
     saldoAcum += saldoSem2;
     var tr = document.createElement('tr');
     if (saldoSem2 < 0 || saldoAcum < 0) tr.style.background = '#fdf0eb';
+    else if(getSaldoLimiar() > 0 && saldoAcum < getSaldoLimiar()) tr.style.background = '#fffbea';
     tr.innerHTML =
       '<td style="font-family:DM Mono,monospace;font-size:11px;white-space:nowrap">'+semLbl2+'</td>'
       +'<td class="tr" style="color:var(--red)">'+(pg2.pv?fmtNeg(pg2.pv):'-')+'</td>'
@@ -3401,7 +3562,7 @@ function renderFluxoExt() {
       +'<td class="tr" style="font-weight:700;color:'+(saldoSem2>=0?'var(--blue)':'var(--red)')+'">'+
         (saldoSem2>=0?fmtPos(saldoSem2):fmtNeg(saldoSem2))+'</td>'
       +'<td class="tr" style="font-weight:700;color:'+(saldoAcum>=0?'var(--blue)':'var(--red)')+'">'+
-        (saldoAcum>=0?fmtPos(saldoAcum):fmtNeg(saldoAcum))+'</td>';
+        semDot(saldoAcum,getSaldoLimiar())+(saldoAcum>=0?fmtPos(saldoAcum):fmtNeg(saldoAcum))+'</td>';
     tbody.appendChild(tr);
   }
 }
@@ -3448,6 +3609,7 @@ function renderFluxo15Ext() {
       saldoAcum += saldoDia;
       var tr = document.createElement('tr');
       if (saldoAcum < 0 || saldoDia < 0) tr.style.background = '#fdf0eb';
+      else if(getSaldoLimiar() > 0 && saldoAcum < getSaldoLimiar()) tr.style.background = '#fffbea';
       var dayLbl = DAY_NAMES[dow]+' '+pad(cur.getDate())+'/'+pad(cur.getMonth()+1);
       tr.innerHTML =
         '<td style="font-family:DM Mono,monospace;font-size:11px;white-space:nowrap">'+dayLbl+'</td>'
@@ -3456,7 +3618,7 @@ function renderFluxo15Ext() {
         +'<td class="tr" style="font-weight:700;color:'+(saldoDia>=0?'var(--blue)':'var(--red)')+'">'+
           (saldoDia>=0?fmtPos(saldoDia):fmtNeg(saldoDia))+'</td>'
         +'<td class="tr" style="font-weight:700;color:'+(saldoAcum>=0?'var(--blue)':'var(--red)')+'">'+
-          (saldoAcum>=0?fmtPos(saldoAcum):fmtNeg(saldoAcum))+'</td>';
+          semDot(saldoAcum,getSaldoLimiar())+(saldoAcum>=0?fmtPos(saldoAcum):fmtNeg(saldoAcum))+'</td>';
       tbody.appendChild(tr);
       rendered++;
     }
@@ -3477,6 +3639,7 @@ loadAllData().then(() => {
   autoSaveFilters('apr');
   renderProfiles('apr');
   initProfilesAPR();
+  loadCriticos();
   // Init PR
   curB64Recebidas = ORIG_B64_RECEBIDAS_PR;
   if (typeof initDashPR === 'function') initDashPR();
