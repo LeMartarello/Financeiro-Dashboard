@@ -344,6 +344,44 @@ tr:hover td{background:var(--surface2);}
 .sf-legend{display:flex;align-items:center;gap:14px;font-size:10px;color:var(--ink3);font-family:'DM Mono',monospace;}
 .sf-legend-item{display:flex;align-items:center;gap:4px;}
 
+/* ── DECISÃO DO DIA ─────────────────────────────────────────── */
+#page-decisao-dia.active{display:flex;flex-direction:column;flex:1;overflow:hidden;min-height:0;}
+.dd-cockpit{
+  display:grid;grid-template-columns:repeat(5,1fr);gap:10px;
+  padding:12px 24px;background:var(--surface);
+  border-bottom:2px solid var(--border);flex-shrink:0;
+  box-shadow:0 2px 8px rgba(42,26,20,.06);
+}
+.dd-cockpit-item{border-left:3px solid var(--border2);padding:8px 12px;border-radius:var(--r);background:var(--bg);}
+.dd-cockpit-label{font-size:10px;font-weight:600;color:var(--ink3);text-transform:uppercase;letter-spacing:.6px;font-family:'DM Mono',monospace;margin-bottom:4px;}
+.dd-cockpit-value{font-family:'DM Mono',monospace;font-size:18px;font-weight:700;line-height:1.1;}
+.dd-cockpit-sub{font-size:10px;color:var(--ink3);margin-top:2px;}
+.dd-saldo-inp{font-family:'DM Mono',monospace;font-size:16px;font-weight:700;border:none;background:transparent;color:var(--blue);width:100%;outline:none;padding:0;}
+.dd-saldo-inp:focus{border-bottom:1px dashed var(--blue);}
+.dd-table-wrap{flex:1;overflow-y:auto;padding:16px 24px 24px;}
+.dd-action-select{width:100%;padding:4px 6px;border:1px solid var(--border);border-radius:var(--r);font-size:11px;background:var(--surface);color:var(--ink);cursor:pointer;font-family:'DM Sans',sans-serif;}
+.dd-action-select:focus{outline:none;border-color:var(--accent);}
+.dd-nova-data{width:100%;padding:3px 6px;border:1px solid var(--border);border-radius:var(--r);font-size:11px;background:var(--surface);color:var(--ink);font-family:'DM Mono',monospace;}
+.dd-obs-input{width:100%;padding:3px 6px;border:1px solid var(--border);border-radius:var(--r);font-size:11px;background:var(--surface);color:var(--ink);font-family:'DM Sans',sans-serif;}
+.dd-obs-input:focus,.dd-nova-data:focus{outline:none;border-color:var(--accent);}
+.dd-tag-hoje{background:#fef3c7;color:#92400e;border-radius:10px;padding:1px 7px;font-size:10px;font-weight:700;font-family:'DM Mono',monospace;white-space:nowrap;}
+.dd-tag-venc{background:var(--red-bg);color:var(--red);border-radius:10px;padding:1px 7px;font-size:10px;font-weight:700;font-family:'DM Mono',monospace;white-space:nowrap;}
+.dd-filter-bar{display:flex;align-items:center;gap:12px;padding:10px 0 14px;flex-wrap:wrap;}
+.dd-filter-label{font-size:11px;color:var(--ink3);font-family:'Roboto',sans-serif;white-space:nowrap;}
+.dd-date-inp{padding:4px 8px;border:1px solid var(--border);border-radius:var(--r);font-size:11px;color:var(--ink);background:var(--surface);font-family:'DM Mono',monospace;}
+.dd-date-inp:focus{outline:none;border-color:var(--accent);}
+
+/* ── ANTECIPAÇÃO ─────────────────────────────────────────────── */
+.antecp-section{margin-top:18px;border-top:2px dashed var(--border2);padding-top:14px;}
+.antecp-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;}
+.antecp-title{font-size:13px;font-weight:600;color:var(--blue);font-family:'DM Serif Display',serif;}
+.antecp-sub{font-size:11px;color:var(--ink3);margin-top:1px;}
+.antecp-total{font-family:'DM Mono',monospace;font-size:13px;font-weight:700;color:#3a8c50;}
+.antecp-taxa{width:70px;padding:3px 6px;border:1px solid var(--border);border-radius:var(--r);font-size:11px;background:var(--surface);color:var(--ink);font-family:'DM Mono',monospace;text-align:right;}
+.antecp-taxa:focus{outline:none;border-color:var(--blue);}
+.antecp-liq{font-family:'DM Mono',monospace;font-size:12px;font-weight:700;color:#3a8c50;white-space:nowrap;}
+.antecp-cb{accent-color:var(--blue);width:14px;height:14px;cursor:pointer;}
+
 /* ── FORNECEDORES CRÍTICOS ───────────────────────────────────── */
 .badge-critico{
   display:inline-flex;align-items:center;gap:2px;
@@ -371,6 +409,7 @@ tr:hover td{background:var(--surface2);}
   <nav class="sidebar-nav">
     <div class="nav-section-lbl">Navegação</div>
     <div class="nav-item active" onclick="showPage('dash-plano',this)"><span class="nav-icon">📊</span>Dashboard</div>
+<div class="nav-item" onclick="showPage('decisao-dia',this)"><span class="nav-icon">🎯</span>Decisão de Pagamento</div>
 <div class="nav-item" onclick="showPage('base-pagar',this)"><span class="nav-icon">📋</span>Base Completa — Pagar</div>
 <div class="nav-item" onclick="showPage('base-receber',this)"><span class="nav-icon">📥</span>Base Completa — Receber</div>
 <div class="nav-item" onclick="showPage('orig-bases',this)"><span class="nav-icon">⬆</span>Atualizar Bases</div>
@@ -461,14 +500,14 @@ tr:hover td{background:var(--surface2);}
         <div class="filter-actions"><button class="lnk" onclick="selAll('plano')">Todos</button><span style="color:#ddd;margin:0 3px">|</span><button class="lnk" onclick="deselAll('plano')">Nenhum</button></div>
       </div>
       <div class="fcard">
-        <div class="fcard-hdr"><h3>⭐ Planos Estratégicos</h3><small id="estr-count" style="color:var(--accent)">0 marcados</small></div>
+        <div class="fcard-hdr"><h3>⭐ Fornecedores Estratégicos</h3><small id="estr-count" style="color:var(--accent)">0 marcados</small></div>
         <div class="filter-body" style="max-height:150px">
-          <input class="fsearch" placeholder="Buscar plano..." oninput="searchF('estr-list',this.value)">
+          <input class="fsearch" placeholder="Buscar fornecedor..." oninput="searchF('estr-list',this.value)">
           <div id="estr-list"></div>
-          <div id="estr-empty" style="font-size:10px;color:var(--ink3);text-align:center;padding:6px 0;display:block">Carregando planos...</div>
+          <div id="estr-empty" style="font-size:10px;color:var(--ink3);text-align:center;padding:6px 0;display:block">Carregando fornecedores...</div>
         </div>
         <div style="padding:3px 8px 5px;border-top:1px solid var(--border);font-size:9px;color:var(--ink3);font-family:'DM Mono',monospace;letter-spacing:.3px">
-          ☆ marque os planos prioritários para receber badge ⭐
+          ☆ marque os fornecedores prioritários para receber badge ⭐
         </div>
       </div>
     </div>
@@ -751,6 +790,130 @@ tr:hover td{background:var(--surface2);}
   </div>
 </div>
 
+<!-- ── DECISÃO DO DIA ──────────────────────────────────────── -->
+<div class="page" id="page-decisao-dia">
+
+  <!-- Cockpit -->
+  <div class="dd-cockpit">
+    <div class="dd-cockpit-item" style="border-left-color:var(--blue)">
+      <div class="dd-cockpit-label">Saldo Bancário</div>
+      <input id="dd-saldo-input" class="dd-saldo-inp" type="text" placeholder="R$ 0,00" oninput="ddSyncSaldo(this)">
+      <div class="dd-cockpit-sub">Sincronizado com o fluxo</div>
+    </div>
+    <div class="dd-cockpit-item" style="border-left-color:var(--red)">
+      <div class="dd-cockpit-label">A Pagar no Período</div>
+      <div class="dd-cockpit-value" id="dd-total-val" style="color:var(--red)">—</div>
+      <div class="dd-cockpit-sub" id="dd-total-q">0 títulos</div>
+    </div>
+    <div class="dd-cockpit-item" style="border-left-color:#3a8c50">
+      <div class="dd-cockpit-label">A Receber no Período</div>
+      <div class="dd-cockpit-value" id="dd-rec-val" style="color:#3a8c50">—</div>
+      <div class="dd-cockpit-sub" id="dd-rec-q">0 títulos</div>
+    </div>
+    <div class="dd-cockpit-item" style="border-left-color:var(--accent)">
+      <div class="dd-cockpit-label">✓ Selecionado p/ Pagar</div>
+      <div class="dd-cockpit-value" id="dd-sel-val" style="color:var(--accent)">R$ 0,00</div>
+      <div class="dd-cockpit-sub" id="dd-sel-q">0 selecionados</div>
+    </div>
+    <div class="dd-cockpit-item" id="dd-proj-item" style="border-left-color:var(--blue);background:var(--blue-bg)">
+      <div class="dd-cockpit-label">Saldo Projetado</div>
+      <div class="dd-cockpit-value" id="dd-proj-val" style="color:var(--blue)">R$ 0,00</div>
+      <div class="dd-cockpit-sub">Bancário + Receber − Pagar Selecionado</div>
+    </div>
+  </div>
+
+  <!-- Content -->
+  <div class="dd-table-wrap">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+      <div>
+        <div style="font-size:15px;font-weight:600;color:var(--ink);font-family:'DM Serif Display',serif">Decisão de Pagamento</div>
+        <div style="font-size:11px;color:var(--ink3);margin-top:2px" id="dd-date-lbl">Títulos vencidos e vencendo hoje</div>
+      </div>
+      <div style="display:flex;gap:8px">
+        <button class="btn btn-secondary btn-sm" onclick="ddExportJSON()">💾 Salvar decisões</button>
+        <button class="btn btn-secondary btn-sm" onclick="document.getElementById('dd-import-file').click()">📂 Restaurar</button>
+        <input type="file" id="dd-import-file" accept=".json" style="display:none" onchange="ddImportJSON(this)">
+        <button class="btn btn-secondary btn-sm" onclick="ddExportExcel()">⬇ Excel</button>
+        <button class="btn btn-secondary btn-sm" onclick="ddExportPDF()">🖨 PDF</button>
+      </div>
+    </div>
+
+    <!-- Filtros -->
+    <div class="dd-filter-bar">
+      <span class="dd-filter-label">Período:</span>
+      <label class="dd-filter-label">De
+        <input type="date" id="dd-de" class="dd-date-inp" style="margin-left:5px" onchange="renderDecisaoDia()">
+      </label>
+      <label class="dd-filter-label">Até
+        <input type="date" id="dd-ate" class="dd-date-inp" style="margin-left:5px" onchange="renderDecisaoDia()">
+      </label>
+      <button class="btn btn-secondary btn-sm" onclick="ddResetPeriod()">Hoje</button>
+      <button class="btn btn-secondary btn-sm" onclick="ddSetPeriod(7)">Próx. 7 dias</button>
+      <button class="btn btn-secondary btn-sm" onclick="ddSetPeriod(30)">Próx. 30 dias</button>
+      <label style="display:flex;align-items:center;gap:5px;font-size:11px;color:var(--ink3);font-family:'Roboto',sans-serif;margin-left:8px;border-left:1px solid var(--border);padding-left:12px;cursor:pointer">
+        <input type="checkbox" id="dd-only-estr" onchange="renderDecisaoDia()" style="accent-color:var(--accent);width:12px;height:12px">
+        ⭐ Só estratégicos
+      </label>
+      <span id="dd-filter-info" style="font-size:10px;color:var(--ink3);font-family:'DM Mono',monospace;margin-left:4px"></span>
+    </div>
+
+    <div class="panel-card" style="overflow-x:auto">
+      <table id="dd-table" style="min-width:980px">
+        <thead><tr>
+          <th style="width:20%">Fornecedor</th>
+          <th style="width:17%">Plano Financeiro</th>
+          <th style="width:8%">Vencimento</th>
+          <th style="width:6%;text-align:center">Atraso</th>
+          <th class="tr" style="width:10%">Valor</th>
+          <th style="width:16%">Ação</th>
+          <th style="width:11%">Nova Data</th>
+          <th style="width:12%">Observação</th>
+        </tr></thead>
+        <tbody id="dd-body"></tbody>
+      </table>
+      <div class="empty" id="dd-empty" style="display:none">Nenhum título no período. Carregue uma base de Contas a Pagar.</div>
+    </div>
+
+    <div style="display:flex;align-items:center;gap:16px;margin-top:10px;font-size:10px;color:var(--ink3);font-family:'DM Mono',monospace;flex-wrap:wrap">
+      <span style="display:flex;align-items:center;gap:4px"><span style="display:inline-block;width:12px;height:12px;background:#f0fdf4;border:1px solid #bbf7d0;border-radius:2px"></span>Pagar hoje</span>
+      <span style="display:flex;align-items:center;gap:4px"><span style="display:inline-block;width:12px;height:12px;background:#fdf0eb;border:1px solid var(--accent-border);border-radius:2px"></span>Atrasar</span>
+      <span style="display:flex;align-items:center;gap:4px"><span style="display:inline-block;width:12px;height:12px;background:#eff4fc;border:1px solid #bfdbfe;border-radius:2px"></span>Negociar</span>
+      <span style="margin-left:auto">Estado salvo automaticamente no navegador por data</span>
+    </div>
+
+    <!-- ── ANTECIPAÇÃO DE RECEBÍVEIS ──────────────────────── -->
+    <div class="antecp-section">
+      <div class="antecp-hdr">
+        <div>
+          <div class="antecp-title">📥 Antecipação de Recebíveis</div>
+          <div class="antecp-sub" id="antecp-sub">Selecione recebíveis para antecipar e informe a taxa de desconto. O líquido entra no Saldo Projetado.</div>
+        </div>
+        <div style="text-align:right">
+          <div style="font-size:10px;color:var(--ink3);font-family:'DM Mono',monospace;margin-bottom:2px">Líquido antecipado</div>
+          <div class="antecp-total" id="antecp-total-liq">R$ 0,00</div>
+          <div style="font-size:10px;color:var(--ink3);font-family:'DM Mono',monospace;margin-top:1px" id="antecp-total-q">0 selecionados</div>
+        </div>
+      </div>
+      <div class="panel-card" style="overflow-x:auto">
+        <table id="antecp-table" style="min-width:760px">
+          <thead><tr>
+            <th style="width:3%;text-align:center">✓</th>
+            <th style="width:28%">Cliente</th>
+            <th style="width:10%">Vencimento</th>
+            <th style="width:8%;text-align:center">Prazo</th>
+            <th class="tr" style="width:13%">Valor Bruto</th>
+            <th style="width:11%;text-align:center">Taxa %</th>
+            <th class="tr" style="width:13%">Líquido</th>
+            <th style="width:14%">Observação</th>
+          </tr></thead>
+          <tbody id="antecp-body"></tbody>
+        </table>
+        <div class="empty" id="antecp-empty" style="display:none">Nenhum recebível no período. Carregue uma base de Contas a Receber.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
 </div><!-- /#main -->
 
 <!-- /#main -->
@@ -904,6 +1067,7 @@ function toggleSidebar(){
 function showPage(id,el){
   const titles = {
     'dash-plano':'Dashboard',
+    'decisao-dia':'🎯 Decisão de Pagamento',
     'base-pagar':'Base Completa — Pagar',
     'base-receber':'Base Completa — Receber',
     'orig-bases':'Atualizar Bases'
@@ -918,6 +1082,7 @@ function showPage(id,el){
   var pg = document.getElementById('page-'+id);
   if(pg) pg.classList.add('active');
   if(id==='dash-plano')   updateAll();
+  if(id==='decisao-dia')  renderDecisaoDia();
   if(id==='base-pagar')   filterBase('p');
   if(id==='base-receber') filterBase('r');
 }
@@ -1545,7 +1710,7 @@ td{padding:5px 9px;border-bottom:1px solid #F5F5F5;color:#444}tr:last-child td{b
 <table><thead><tr><th>Empresa</th><th>${isPagar?'Fornecedor':'Cliente'}</th><th>Documento</th><th>Tipo</th>${isPagar?'<th>Título</th><th>Plano Financeiro</th>':''}<th>Vencimento</th><th>Mês</th><th>Ano</th><th>Status</th><th style="text-align:right">Valor</th></tr></thead>
 <tbody id="tbody">${tableRows}</tbody></table></div></div></div>
 <div class="foot">Total: ${fv(tot)} | ${rows.length} lançamentos</div>
-<script>
+${'<'}script>
 const ALL_ROWS=${rowsJSON};
 const fmtDateJS=s=>s?s.split('-').reverse().join('/'):'';
 function filterRows(q){const trs=document.getElementById('tbody').querySelectorAll('tr');let v=0;trs.forEach((tr,i)=>{const r=ALL_ROWS[i];const m=!q||[r.empresa,r.fornecedor||r.cliente||'',r.documento,r.tipo_doc].join(' ').toLowerCase().includes(q.toLowerCase());tr.style.display=m?'':'none';if(m)v++;});document.getElementById('count').textContent=v+' de '+ALL_ROWS.length+' registros';}
@@ -1560,11 +1725,11 @@ function renderFornAberto(dp){
   if(!document.getElementById('forn-body')) return;
   const tot=dp.reduce((s,r)=>s+r.valor,0);
   const agg={};
-  dp.forEach(r=>{if(!agg[r.fornecedor])agg[r.fornecedor]={emp:r.empresa,v:0,a:0,tot:0,c:0,hasCrit:false};r.status==='VENCIDO'?agg[r.fornecedor].v+=r.valor:agg[r.fornecedor].a+=r.valor;agg[r.fornecedor].tot+=r.valor;agg[r.fornecedor].c++;if(isCritico(r.plano_fin))agg[r.fornecedor].hasCrit=true;});
+  dp.forEach(r=>{if(!agg[r.fornecedor])agg[r.fornecedor]={emp:r.empresa,v:0,a:0,tot:0,c:0};r.status==='VENCIDO'?agg[r.fornecedor].v+=r.valor:agg[r.fornecedor].a+=r.valor;agg[r.fornecedor].tot+=r.valor;agg[r.fornecedor].c++;});
   const sorted=Object.entries(agg).sort((a,b)=>a[1].tot-b[1].tot);
   const tbody=document.getElementById('forn-body'); tbody.innerHTML='';
   sorted.forEach(([f,o])=>{
-    const isCrit=o.hasCrit;
+    const isCrit=isCritico(f);
     const tr=document.createElement('tr'); tr.style.cursor='pointer'; tr.onclick=()=>openFornTab(f,dp);
     tr.innerHTML=`<td title="${f}" style="color:#7F1D1D;text-decoration:underline">${isCrit?'<span class="badge-critico">⭐ Crítico</span> ':''}${trunc(f,28)}</td><td>${(o.emp||'').split(' - ')[0]}</td><td style="text-align:center">${o.c}</td><td class="tr" style="color:#7F1D1D">${o.v?fmtNeg(o.v):'-'}</td><td class="tr" style="color:#DC2626">${o.a?fmtNeg(o.a):'-'}</td><td class="tr" style="font-weight:700;color:#7F1D1D">${fmtNeg(o.tot)}</td>`;
     tbody.appendChild(tr);
@@ -1630,7 +1795,7 @@ function filterBase(t){
     const vStr=isPagar?'(R$ '+fmtAbs(Math.abs(r.valor))+')':'R$ '+fmtAbs(r.valor);
     const vColor=isPagar?'#7F1D1D':'#1E3A8A';
     const nome=isPagar?r.fornecedor:r.cliente;
-    const critBadge=isPagar&&isCritico(r.plano_fin)?'<span class="badge-critico">⭐ Crítico</span> ':'';
+    const critBadge=isPagar&&isCritico(nome)?'<span class="badge-critico">⭐ Crítico</span> ':'';
     const tr=document.createElement('tr'); tr.innerHTML=isPagar?
       `<td title="${r.empresa}">${trunc(r.empresa,22)}</td><td title="${nome}">${critBadge}${trunc(nome,28)}</td><td title="${r.obra||''}">${trunc(r.obra||'',18)}</td><td>${r.documento}</td><td title="${TIPOS_DESC[r.tipo_doc]||r.tipo_doc}">${r.tipo_doc}</td><td title="${r.titulo||''}">${trunc(r.titulo||'',18)}</td><td title="${r.plano_fin||''}">${trunc(r.plano_fin||'',22)}</td><td>${fmtDate(r.data)}</td><td>${r.mes}</td><td>${r.ano}</td><td><span class="${sClass}">${sLabel}</span></td><td class="tr" style="color:${vColor}">${vStr}</td>`:
       `<td title="${r.empresa}">${trunc(r.empresa,22)}</td><td title="${nome}">${trunc(nome,30)}</td><td>${r.documento}</td><td title="${TIPOS_DESC[r.tipo_doc]||r.tipo_doc}">${r.tipo_doc}</td><td>${fmtDate(r.data)}</td><td>${r.mes}</td><td>${r.ano}</td><td><span class="${sClass}">${sLabel}</span></td><td class="tr" style="color:${vColor}">${vStr}</td>`;
@@ -1904,15 +2069,14 @@ function buildPlanoYearBody(y,yData,yMax,dp,ano){
 function renderPlanoFornPanel(dp){
   const agg={};
   dp.forEach(r=>{
-    if(!agg[r.fornecedor])agg[r.fornecedor]={v:0,a:0,tot:0,c:0,hasCrit:false};
+    if(!agg[r.fornecedor])agg[r.fornecedor]={v:0,a:0,tot:0,c:0};
     r.status==='VENCIDO'?agg[r.fornecedor].v+=r.valor:agg[r.fornecedor].a+=r.valor;
     agg[r.fornecedor].tot+=r.valor;agg[r.fornecedor].c++;
-    if(isCritico(r.plano_fin)) agg[r.fornecedor].hasCrit=true;
   });
   const sorted=Object.entries(agg).sort((a,b)=>a[1].tot-b[1].tot);
   const tbody=document.getElementById('plano-forn-body');if(!tbody)return;tbody.innerHTML='';
   sorted.forEach(([f,o])=>{
-    const isCrit=o.hasCrit;
+    const isCrit=isCritico(f);
     const tr=document.createElement('tr');tr.style.cursor='pointer';
     tr.onclick=()=>openFornTab(f,dp);
     tr.innerHTML=`<td title="${f}" style="color:var(--red);text-decoration:underline;max-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${isCrit?'⭐ ':''}${trunc(f,isCrit?20:28)}</td>`
@@ -2869,7 +3033,7 @@ td{padding:5px 9px;border-bottom:1px solid #F5F5F5;color:#444}tr:last-child td{b
 </tr></thead><tbody id="tbody">${tableRows}</tbody></table>
 </div></div></div>
 <div class="foot">Total: ${fmtNeg(total)} · ${sorted.length} fornecedores · ${rows.length} títulos</div>
-<script>
+${'<'}script>
 const AGG=${aggJSON};
 function doFilter(q){
   const trs=document.getElementById('tbody').querySelectorAll('tr');
@@ -3353,9 +3517,9 @@ function saveCriticos() {
   try { localStorage.setItem('fin_criticos_v1', JSON.stringify([...CRITICOS_SET])); } catch(e) {}
 }
 
-function isCritico(plano) {
-  if (!plano || !CRITICOS_SET.size) return false;
-  return CRITICOS_SET.has(plano.trim().toUpperCase());
+function isCritico(nome) {
+  if (!nome || !CRITICOS_SET.size) return false;
+  return CRITICOS_SET.has(nome.trim().toUpperCase());
 }
 
 function toggleCritico(plano) {
@@ -3374,13 +3538,13 @@ function renderEstrategicosPanel() {
   if (!list) return;
   list.innerHTML = '';
   // allPlanos may not be ready yet
-  var planos = (typeof allPlanos !== 'undefined' && allPlanos.length) ? allPlanos : [];
+  var planos = (typeof allFornecedores !== 'undefined' && allFornecedores.length) ? allFornecedores : [];
   if (count) count.textContent = CRITICOS_SET.size + ' marcados';
-  if (!planos.length) { if (empty) { empty.textContent = 'Carregue uma base para ver os planos.'; empty.style.display = 'block'; } return; }
+  if (!planos.length) { if (empty) { empty.textContent = 'Carregue uma base para ver os fornecedores.'; empty.style.display = 'block'; } return; }
   if (empty) empty.style.display = 'none';
   planos.forEach(function(p) {
     var isCrit = isCritico(p);
-    var cnt = (typeof RAW_PAGAR !== 'undefined') ? RAW_PAGAR.filter(function(r){ return r.plano_fin === p; }).length : 0;
+    var cnt = (typeof RAW_PAGAR !== 'undefined') ? RAW_PAGAR.filter(function(r){ return r.fornecedor === p; }).length : 0;
     var item = document.createElement('div');
     item.className = 'fitem'; item.dataset.val = p;
     item.style.cssText = isCrit ? 'background:#fef9ec;border-radius:4px' : '';
@@ -3625,6 +3789,480 @@ function renderFluxo15Ext() {
     cur.setDate(cur.getDate()+1);
     safety++;
   }
+}
+
+// ══════════════════════════════════════════════════════════════
+// DECISÃO DO DIA
+// ══════════════════════════════════════════════════════════════
+var DD_STATE = {};
+var DD_TODAY = '';
+
+function ddGetPeriod() {
+  var todayISO = new Date().toISOString().slice(0,10);
+  var de  = (document.getElementById('dd-de')  || {value:''}).value || todayISO;
+  var ate = (document.getElementById('dd-ate') || {value:''}).value || todayISO;
+  if(de > ate) ate = de;
+  return {de:de, ate:ate};
+}
+function ddResetPeriod() {
+  var de=document.getElementById('dd-de'), ate=document.getElementById('dd-ate');
+  if(de) de.value=''; if(ate) ate.value='';
+  renderDecisaoDia();
+}
+function ddSetPeriod(days) {
+  var t=new Date(), f=new Date(); f.setDate(t.getDate()+days-1);
+  var pad=function(n){return String(n).padStart(2,'0');};
+  var deStr=t.getFullYear()+'-'+pad(t.getMonth()+1)+'-'+pad(t.getDate());
+  var ateStr=f.getFullYear()+'-'+pad(f.getMonth()+1)+'-'+pad(f.getDate());
+  var de=document.getElementById('dd-de'), ate=document.getElementById('dd-ate');
+  if(de) de.value=deStr; if(ate) ate.value=ateStr;
+  renderDecisaoDia();
+}
+function ddKey(r) {
+  return [r.empresa||'',r.fornecedor||'',r.documento||'',r.data||''].join('||');
+}
+function ddGetSaldo() {
+  var el=document.getElementById('dd-saldo-input');
+  if(!el||!el.value) return 0;
+  return parseFloat(el.value.replace(/[R$\s.]/g,'').replace(',','.')) || 0;
+}
+function ddSyncSaldo(el) {
+  var raw=el.value.replace(/[^0-9]/g,'');
+  if(!raw){el.value='';}
+  else{var num=parseInt(raw,10)/100;el.value='R$ '+num.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});}
+  var si=document.getElementById('saldo-inicial');
+  if(si){si.value=el.value;renderFluxo();renderFluxo15();}
+  updateDDCockpit();
+}
+function getDDTitles() {
+  var p=ddGetPeriod();
+  var onlyEstr = document.getElementById('dd-only-estr');
+  var filterEstr = onlyEstr && onlyEstr.checked;
+  var seen = new Set();
+  return RAW_PAGAR.filter(function(r){
+    if(typeof selEmpresas!=='undefined'&&!selEmpresas.has(r.empresa)) return false;
+    if(typeof selTipos!=='undefined'&&!selTipos.has(r.tipo_doc)) return false;
+    if(typeof selFornecedores!=='undefined'&&!selFornecedores.has(r.fornecedor)) return false;
+    if(typeof allPlanos!=='undefined'&&allPlanos.length>0&&r.plano_fin&&!selPlanos.has(r.plano_fin)) return false;
+    if(filterEstr && !isCritico(r.fornecedor)) return false;
+    var k=ddKey(r);
+    if(seen.has(k)) return false;
+    // Incluir se data original está no período
+    var inByDate = r.data>=p.de && r.data<=p.ate;
+    // Incluir se nova data (atrasar/negociar) está no período mas original NÃO está
+    var st=DD_STATE[k]||{};
+    var nd=st.novaData;
+    var inByNovaData = nd && nd>=p.de && nd<=p.ate && !inByDate;
+    if(!inByDate && !inByNovaData) return false;
+    seen.add(k);
+    return true;
+  });
+}
+function getDDReceivables() {
+  var p=ddGetPeriod();
+  return RAW_RECEBER.filter(function(r){
+    if(typeof selEmpresas!=='undefined'&&!selEmpresas.has(r.empresa)) return false;
+    if(typeof selTipos!=='undefined'&&!selTipos.has(r.tipo_doc)) return false;
+    if(typeof selClientes!=='undefined'&&!selClientes.has(r.cliente)) return false;
+    return r.data>=p.de && r.data<=p.ate;
+  });
+}
+// Todos os recebíveis de hoje em diante (ignora filtro de período — para o painel de antecipação)
+function getAllFutureReceivables() {
+  var todayISO=new Date().toISOString().slice(0,10);
+  return RAW_RECEBER.filter(function(r){
+    if(typeof selEmpresas!=='undefined'&&!selEmpresas.has(r.empresa)) return false;
+    if(typeof selTipos!=='undefined'&&!selTipos.has(r.tipo_doc)) return false;
+    if(typeof selClientes!=='undefined'&&!selClientes.has(r.cliente)) return false;
+    return r.data>=todayISO;
+  });
+}
+function loadDDState() {
+  try{var s=localStorage.getItem('fin_decisao_v1_'+DD_TODAY);DD_STATE=s?JSON.parse(s):{};}
+  catch(e){DD_STATE={};}
+}
+function saveDDState() {
+  try{localStorage.setItem('fin_decisao_v1_'+DD_TODAY,JSON.stringify(DD_STATE));}catch(e){}
+}
+function updateDDCockpit() {
+  var titles=getDDTitles(), recvs=getDDReceivables();
+  var totalPagar=titles.reduce(function(s,r){return s+Math.abs(r.valor);},0);
+  var totalReceber=recvs.reduce(function(s,r){return s+Math.abs(r.valor);},0);
+  var selPagar=0,selQ=0;
+  titles.forEach(function(r){var k=ddKey(r);if(DD_STATE[k]&&DD_STATE[k].acao==='pagar'){selPagar+=Math.abs(r.valor);selQ++;}});
+  // Antecipações EXTRAS: apenas recebíveis FORA do período selecionado que foram marcados
+  // (os do período já entram em totalReceber — evita dupla contagem)
+  var p=ddGetPeriod();
+  var liqAntecpExtras=0;
+  getAllFutureReceivables().forEach(function(r){
+    if(r.data>=p.de && r.data<=p.ate) return; // já está em totalReceber
+    var k=antecpKey(r), st=DD_STATE[k];
+    if(st&&st.sel){
+      var taxa=parseFloat(st.taxa)||0;
+      liqAntecpExtras+=Math.abs(r.valor)*(1-taxa/100);
+    }
+  });
+  // Saldo Projetado = Bancário + Receber do período + Antecipações extras (fora do período) − Pagar selecionado
+  var saldo=ddGetSaldo(),proj=saldo+totalReceber+liqAntecpExtras-selPagar,el;
+  el=document.getElementById('dd-total-val');if(el)el.textContent=totalPagar?fmtNeg(-totalPagar):'R$ 0,00';
+  el=document.getElementById('dd-total-q');if(el)el.textContent=titles.length+' títulos';
+  el=document.getElementById('dd-rec-val');if(el)el.textContent=totalReceber?fmtPos(totalReceber):'R$ 0,00';
+  el=document.getElementById('dd-rec-q');if(el)el.textContent=recvs.length+' títulos';
+  el=document.getElementById('dd-sel-val');if(el)el.textContent=selQ?fmtNeg(-selPagar):'R$ 0,00';
+  el=document.getElementById('dd-sel-q');if(el)el.textContent=selQ+' selecionados';
+  el=document.getElementById('dd-proj-val');
+  if(el){el.textContent=proj>=0?fmtPos(proj):fmtNeg(proj);el.style.color=proj>=0?'var(--blue)':'var(--red)';}
+  el=document.getElementById('dd-proj-item');
+  if(el){el.style.borderLeftColor=proj>=0?'var(--blue)':'var(--red)';el.style.background=proj>=0?'var(--blue-bg)':'var(--red-bg)';}
+  updateAntecpTotals();
+}
+function antecpKey(r){return 'antecp||'+(r.cliente||'')+'||'+(r.documento||'')+'||'+(r.data||'');}
+function getAntecpLiquido(){
+  // Usa todos os futuros (painel de antecipação não filtra por período)
+  var all=getAllFutureReceivables(),total=0;
+  all.forEach(function(r){
+    var k=antecpKey(r),st=DD_STATE[k];
+    if(st&&st.sel){
+      var taxa=parseFloat(st.taxa)||0;
+      total+=Math.abs(r.valor)*(1-taxa/100);
+    }
+  });
+  return total;
+}
+function updateAntecpTotals(){
+  var all=getAllFutureReceivables();
+  var selQ=all.filter(function(r){var st=DD_STATE[antecpKey(r)];return st&&st.sel;}).length;
+  var liq=getAntecpLiquido();
+  var el=document.getElementById('antecp-total-liq');
+  if(el)el.textContent=liq>0?fmtPos(liq):'R$ 0,00';
+  el=document.getElementById('antecp-total-q');
+  if(el)el.textContent=selQ+' selecionado'+(selQ!==1?'s':'');
+}
+function calcAntecpLiq(valor,taxa){
+  var t=parseFloat(taxa)||0;
+  return Math.abs(valor)*(1-t/100);
+}
+function renderAntecipacao(){
+  var tbody=document.getElementById('antecp-body');
+  var empty=document.getElementById('antecp-empty');
+  if(!tbody)return;
+  // Mostra TODOS os recebíveis de hoje em diante, independente do filtro de período
+  var recvs=getAllFutureReceivables();
+  recvs.sort(function(a,b){return a.data.localeCompare(b.data);});
+  tbody.innerHTML='';
+  if(!recvs.length){if(empty)empty.style.display='block';updateAntecpTotals();return;}
+  if(empty)empty.style.display='none';
+  var today=new Date();today.setHours(0,0,0,0);
+  recvs.forEach(function(r){
+    var k=antecpKey(r);
+    var st=DD_STATE[k]||{sel:false,taxa:'',obs:''};
+    var tDate=new Date(r.data+'T00:00:00');
+    var diffDays=Math.round((tDate-today)/86400000);
+    var prazoBadge=diffDays<0
+      ?'<span class="dd-tag-venc">'+Math.abs(diffDays)+'d venc.</span>'
+      :diffDays===0
+        ?'<span class="dd-tag-hoje">Hoje</span>'
+        :'<span style="font-family:DM Mono,monospace;font-size:11px;color:var(--blue)">+'+diffDays+'d</span>';
+    var liq=calcAntecpLiq(r.valor, st.taxa||0);
+    var tr=document.createElement('tr');
+    if(st.sel)tr.style.background='#f0fdf4';
+    tr.innerHTML='<td style="text-align:center"></td>'
+      +'<td title="'+(r.cliente||'')+'" style="font-size:12px">'+trunc(r.cliente||'—',30)+'</td>'
+      +'<td style="font-family:DM Mono,monospace;font-size:11px;white-space:nowrap">'+fmtDate(r.data)+'</td>'
+      +'<td style="text-align:center">'+prazoBadge+'</td>'
+      +'<td class="tr" style="color:var(--blue);font-weight:600">'+fmtPos(Math.abs(r.valor))+'</td>'
+      +'<td style="text-align:center"></td>'
+      +'<td class="tr"></td>'
+      +'<td></td>';
+    // Checkbox
+    var cb=document.createElement('input');cb.type='checkbox';cb.className='antecp-cb';cb.checked=!!st.sel;
+    cb.addEventListener('change',(function(k_,tr_,r_){return function(){
+      DD_STATE[k_]=DD_STATE[k_]||{};DD_STATE[k_].sel=this.checked;
+      tr_.style.background=this.checked?'#f0fdf4':'';
+      saveDDState();updateDDCockpit();
+    };})(k,tr,r));
+    tr.querySelectorAll('td')[0].appendChild(cb);
+    // Taxa %
+    var taxaEl=document.createElement('input');taxaEl.type='number';taxaEl.className='antecp-taxa';
+    taxaEl.placeholder='0,00';taxaEl.min='0';taxaEl.max='100';taxaEl.step='0.01';
+    taxaEl.value=st.taxa||'';
+    taxaEl.addEventListener('input',(function(k_,tr_,r_,liqTd){return function(){
+      DD_STATE[k_]=DD_STATE[k_]||{};DD_STATE[k_].taxa=this.value;
+      var l=calcAntecpLiq(r_.valor,this.value);
+      liqTd.textContent=fmtPos(l);
+      saveDDState();updateDDCockpit();
+    };})(k,tr,r,tr.querySelectorAll('td')[6]));
+    tr.querySelectorAll('td')[5].appendChild(taxaEl);
+    // Líquido inicial
+    tr.querySelectorAll('td')[6].textContent=fmtPos(liq);
+    tr.querySelectorAll('td')[6].className='tr antecp-liq';
+    // Obs
+    var obs=document.createElement('input');obs.type='text';obs.className='dd-obs-input';
+    obs.placeholder='Observação...';obs.value=st.obs||'';
+    obs.addEventListener('change',(function(k_){return function(){DD_STATE[k_]=DD_STATE[k_]||{};DD_STATE[k_].obs=this.value;saveDDState();};})(k));
+    tr.querySelectorAll('td')[7].appendChild(obs);
+    tbody.appendChild(tr);
+  });
+  updateAntecpTotals();
+}
+function applyDDRowStyle(tr,acao){
+  if(acao==='pagar') tr.style.background='#f0fdf4';
+  else if(acao==='atrasar') tr.style.background='#fdf0eb';
+  else if(acao==='negociar') tr.style.background='#eff4fc';
+  else tr.style.background='';
+}
+function renderDecisaoDia() {
+  var si=document.getElementById('saldo-inicial'),ddi=document.getElementById('dd-saldo-input');
+  if(si&&ddi&&si.value&&!ddi.value) ddi.value=si.value;
+  var todayISO=new Date().toISOString().slice(0,10);
+  var deEl=document.getElementById('dd-de'), ateEl=document.getElementById('dd-ate');
+  if(deEl&&!deEl.value) deEl.value=todayISO;
+  if(ateEl&&!ateEl.value) ateEl.value=todayISO;
+  DD_TODAY=todayISO;
+  var p=ddGetPeriod();
+  var lbl=document.getElementById('dd-date-lbl');
+  if(lbl){
+    if(p.de===p.ate&&p.de===todayISO) lbl.textContent='Hoje — '+new Date().toLocaleDateString('pt-BR',{weekday:'long',day:'2-digit',month:'long',year:'numeric'});
+    else lbl.textContent='Período: '+new Date(p.de+'T12:00:00').toLocaleDateString('pt-BR')+(p.de!==p.ate?' a '+new Date(p.ate+'T12:00:00').toLocaleDateString('pt-BR'):'');
+  }
+  loadDDState();
+  var today=new Date();today.setHours(0,0,0,0);
+  var titles=getDDTitles();
+  var fi=document.getElementById('dd-filter-info');
+  if(fi) fi.textContent=titles.length+' títulos no período';
+  titles.sort(function(a,b){
+    var ac=isCritico(a.fornecedor)?0:1,bc=isCritico(b.fornecedor)?0:1;
+    if(ac!==bc) return ac-bc;
+    if(a.data!==b.data) return a.data.localeCompare(b.data);
+    return Math.abs(b.valor)-Math.abs(a.valor);
+  });
+  var tbody=document.getElementById('dd-body'),empty=document.getElementById('dd-empty');
+  if(!tbody) return;
+  tbody.innerHTML='';
+  if(!titles.length){if(empty)empty.style.display='block';updateDDCockpit();return;}
+  if(empty) empty.style.display='none';
+  titles.forEach(function(r){
+    var k=ddKey(r);
+    var st=DD_STATE[k]||{acao:'pagar',novaData:'',obs:''};
+    // Se não havia estado salvo, gravar o default
+    if(!DD_STATE[k]){DD_STATE[k]={acao:'pagar',novaData:'',obs:''};}
+    var isCrit=isCritico(r.fornecedor);
+    var tDate=new Date(r.data+'T00:00:00');
+    var diffDays=Math.round((today-tDate)/86400000);
+    var atrasoBadge=diffDays<0
+      ? '<span class="dd-tag-hoje" style="background:#eff4fc;color:#1e3a8a">'+Math.abs(diffDays)+'d ▸</span>'
+      : diffDays===0
+        ? '<span class="dd-tag-hoje">Hoje</span>'
+        : '<span class="dd-tag-venc">'+diffDays+'d</span>';
+    var tr=document.createElement('tr');
+    applyDDRowStyle(tr,st.acao);
+    tr.innerHTML='<td title="'+r.fornecedor+'">'+(isCrit?'<span class="badge-critico">⭐</span> ':'')+trunc(r.fornecedor,22)+'</td>'
+      +'<td title="'+(r.plano_fin||'')+'" style="font-size:11px;color:var(--ink2)">'+trunc(r.plano_fin||'—',22)+'</td>'
+      +'<td style="font-family:DM Mono,monospace;font-size:11px;white-space:nowrap">'+fmtDate(r.data)+'</td>'
+      +'<td style="text-align:center">'+atrasoBadge+'</td>'
+      +'<td class="tr" style="color:var(--red);font-weight:600">'+fmtNeg(r.valor)+'</td>'
+      +'<td></td><td></td><td></td>';
+    // Cols: 0=forn,1=plano,2=venc,3=atraso,4=valor,5=ação,6=nova data,7=obs
+    var sel=document.createElement('select');sel.className='dd-action-select';
+    [['pagar','✓ Pagar hoje'],['','— Pendente —'],['atrasar','↷ Atrasar'],['negociar','✎ Negociar']].forEach(function(o){
+      var opt=document.createElement('option');opt.value=o[0];opt.textContent=o[1];
+      if(st.acao===o[0])opt.selected=true;sel.appendChild(opt);
+    });
+    sel.addEventListener('change',(function(k_,tr_){return function(){
+      DD_STATE[k_]=DD_STATE[k_]||{};DD_STATE[k_].acao=this.value;
+      applyDDRowStyle(tr_,this.value);
+      var nd=tr_.querySelectorAll('td')[6].querySelector('.dd-nova-data');
+      if(nd)nd.style.display=(this.value==='atrasar'||this.value==='negociar')?'':'none';
+      saveDDState();updateDDCockpit();
+    };})(k,tr));
+    tr.querySelectorAll('td')[5].appendChild(sel);
+    // Nova data
+    var nd=document.createElement('input');nd.type='date';nd.className='dd-nova-data';nd.value=st.novaData||'';
+    nd.style.display=(st.acao==='atrasar'||st.acao==='negociar')?'':'none';
+    nd.addEventListener('change',(function(k_){return function(){DD_STATE[k_]=DD_STATE[k_]||{};DD_STATE[k_].novaData=this.value;saveDDState();};})(k));
+    tr.querySelectorAll('td')[6].appendChild(nd);
+    // Obs
+    var obs=document.createElement('input');obs.type='text';obs.className='dd-obs-input';obs.placeholder='Observação...';obs.value=st.obs||'';
+    obs.addEventListener('change',(function(k_){return function(){DD_STATE[k_]=DD_STATE[k_]||{};DD_STATE[k_].obs=this.value;saveDDState();};})(k));
+    tr.querySelectorAll('td')[7].appendChild(obs);
+    tbody.appendChild(tr);
+  });
+  updateDDCockpit();
+  renderAntecipacao();
+}
+function ddExportJSON() {
+  saveDDState();
+  var titles=getDDTitles(), recvs=getDDReceivables();
+  var selPagar=titles.reduce(function(s,r){var k=ddKey(r);return s+(DD_STATE[k]&&DD_STATE[k].acao==='pagar'?Math.abs(r.valor):0);},0);
+  var data={
+    date:DD_TODAY,exportedAt:new Date().toISOString(),period:ddGetPeriod(),
+    resumo:{totalTitulos:titles.length,totalPagar:titles.reduce(function(s,r){return s+Math.abs(r.valor);},0),totalReceber:recvs.reduce(function(s,r){return s+Math.abs(r.valor);},0),saldoBancario:ddGetSaldo(),selecionadoPagar:selPagar,saldoProjetado:ddGetSaldo()-selPagar},
+    state:DD_STATE,titulos:titles.map(function(r){return Object.assign({},r,DD_STATE[ddKey(r)]||{});})
+  };
+  var blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
+  var a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='decisao_'+DD_TODAY+'.json';a.click();
+}
+function ddImportJSON(input) {
+  var file=input.files[0];if(!file)return;
+  var reader=new FileReader();
+  reader.onload=function(e){
+    try{var data=JSON.parse(e.target.result);if(data.state){DD_STATE=data.state;saveDDState();renderDecisaoDia();}else alert('Arquivo não reconhecido.');}
+    catch(err){alert('Erro ao ler o arquivo JSON.');}
+  };
+  reader.readAsText(file);input.value='';
+}
+function ddExportExcel() {
+  var titles=getDDTitles();if(!titles.length){alert('Nenhum título para exportar.');return;}
+  var today=new Date();today.setHours(0,0,0,0);
+  var headers=['Fornecedor','Plano Financeiro','Empresa','Documento','Tipo','Vencimento','Atraso (dias)','Valor (R$)','Ação','Nova Data','Observação'];
+  var rows=titles.map(function(r){
+    var k=ddKey(r),st=DD_STATE[k]||{};
+    var diff=Math.round((today-new Date(r.data+'T00:00:00'))/86400000);
+    return [r.fornecedor,r.plano_fin||'',r.empresa,r.documento,r.tipo_doc,fmtDate(r.data),diff,Math.abs(r.valor),st.acao||'Pagar hoje',st.novaData||'',st.obs||''];
+  });
+  var wb=XLSX.utils.book_new();
+  var ws=XLSX.utils.aoa_to_sheet([headers,...rows]);
+  ws['!cols']=headers.map(function(h,i){return {wch:Math.max(h.length,...rows.map(function(r){return String(r[i]||'').length;}))+2};});
+  XLSX.utils.book_append_sheet(wb,ws,'Decisão de Pagamento');
+  XLSX.writeFile(wb,'decisao_pagamento_'+DD_TODAY.replace(/-/g,'')+'.xlsx');
+}
+
+function ddExportPDF() {
+  var titles = getDDTitles();
+  var recvs  = getDDReceivables();
+  var today  = new Date(); today.setHours(0,0,0,0);
+  var p      = ddGetPeriod();
+  var saldo  = ddGetSaldo();
+  var liq    = getAntecpLiquido();
+  var antecpBruto=recvs.reduce(function(s,r){var k=antecpKey(r);var st=DD_STATE[k];return s+(st&&st.sel?Math.abs(r.valor):0);},0);
+  var descontoAntecp=antecpBruto-liq;
+
+  // ── Totals ──────────────────────────────────────────────────
+  var totalPagar = titles.reduce(function(s,r){ return s+Math.abs(r.valor); }, 0);
+  var totalRec   = recvs.reduce(function(s,r){ return s+Math.abs(r.valor); }, 0);
+  var selPagar = 0, selQ = 0;
+  titles.forEach(function(r){ var k=ddKey(r); if(DD_STATE[k]&&DD_STATE[k].acao==='pagar'){ selPagar+=Math.abs(r.valor); selQ++; }});
+  var proj = saldo + totalRec - descontoAntecp - selPagar;
+
+  var fmtR = function(v){ return 'R$ '+Math.abs(v).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2}); };
+  var periodoStr = p.de===p.ate
+    ? new Date(p.de+'T12:00:00').toLocaleDateString('pt-BR',{weekday:'long',day:'2-digit',month:'long',year:'numeric'})
+    : new Date(p.de+'T12:00:00').toLocaleDateString('pt-BR')+' a '+new Date(p.ate+'T12:00:00').toLocaleDateString('pt-BR');
+
+  // ── Group titles by action ──────────────────────────────────
+  var groups = {pagar:[], atrasar:[], negociar:[], pendente:[]};
+  titles.forEach(function(r){
+    var k=ddKey(r), st=DD_STATE[k]||{acao:'pagar'};
+    var ac = st.acao||'pagar';
+    (groups[ac]||groups.pendente).push({r:r, st:st});
+  });
+
+  // ── Antecipações selecionadas ───────────────────────────────
+  var antecpRows = recvs.filter(function(r){ var k=antecpKey(r); return DD_STATE[k]&&DD_STATE[k].sel; });
+
+  // ── Row builder ─────────────────────────────────────────────
+  function rowsHTML(items, color, showNovaData) {
+    if(!items.length) return '<tr><td colspan="5" style="color:#aaa;font-style:italic;padding:6px 8px">Nenhum título</td></tr>';
+    return items.map(function(item){
+      var r=item.r, st=item.st;
+      var diff = Math.round((today-new Date(r.data+'T00:00:00'))/86400000);
+      var atrasoStr = diff<0 ? '→ '+Math.abs(diff)+'d' : diff===0 ? 'Hoje' : diff+'d atraso';
+      return '<tr>'
+        +'<td style="max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding:5px 8px">'+r.fornecedor+'</td>'
+        +'<td style="padding:5px 8px;font-size:10px;color:#666">'+trunc(r.plano_fin||'—',22)+'</td>'
+        +'<td style="padding:5px 8px;font-family:monospace;white-space:nowrap">'+fmtDate(r.data)+'</td>'
+        +'<td style="padding:5px 8px;font-family:monospace;font-size:11px">'+atrasoStr+'</td>'
+        +'<td style="padding:5px 8px;text-align:right;font-family:monospace;color:'+color+';font-weight:600">('+fmtR(r.valor)+')</td>'
+        +(showNovaData?'<td style="padding:5px 8px;font-family:monospace;font-size:11px;color:#555">'+(st.novaData||'—')+'</td>'+'<td style="padding:5px 8px;font-size:10px;color:#777">'+(st.obs||'')+'</td>':'')
+        +'</tr>';
+    }).join('');
+  }
+
+  function sectionHTML(title, color, items, showNovaData) {
+    var total = items.reduce(function(s,i){ return s+Math.abs(i.r.valor); }, 0);
+    var cols = showNovaData
+      ? '<th>Fornecedor</th><th>Plano Financeiro</th><th>Vencimento</th><th>Atraso</th><th style="text-align:right">Valor</th><th>Nova Data</th><th>Obs.</th>'
+      : '<th>Fornecedor</th><th>Plano Financeiro</th><th>Vencimento</th><th>Atraso</th><th style="text-align:right">Valor</th>';
+    return items.length ? (
+      '<div style="margin-bottom:20px">'
+      +'<div style="background:'+color+';color:#fff;padding:6px 10px;border-radius:4px 4px 0 0;font-weight:700;font-size:12px;display:flex;justify-content:space-between">'
+      +'<span>'+title+' — '+items.length+' título'+(items.length!==1?'s':'')+'</span>'
+      +'<span>'+fmtR(total)+'</span></div>'
+      +'<table style="width:100%;border-collapse:collapse;font-size:11px;border:1px solid #ddd;border-top:none">'
+      +'<thead><tr style="background:#f5f5f5;font-size:10px;color:#555">'+cols+'</tr></thead>'
+      +'<tbody>'+rowsHTML(items,color,showNovaData)+'</tbody>'
+      +'</table></div>'
+    ) : '';
+  }
+
+  // Antecipações HTML
+  var antecpHTML = '';
+  if(antecpRows.length) {
+    var antecpItems = antecpRows.map(function(r){
+      var k=antecpKey(r), st=DD_STATE[k]||{};
+      var taxa=parseFloat(st.taxa)||0;
+      var liqVal=calcAntecpLiq(r.valor,taxa);
+      return '<tr>'
+        +'<td style="padding:5px 8px;max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+r.cliente+'</td>'
+        +'<td style="padding:5px 8px;font-family:monospace;white-space:nowrap">'+fmtDate(r.data)+'</td>'
+        +'<td style="padding:5px 8px;text-align:right;font-family:monospace">'+fmtR(r.valor)+'</td>'
+        +'<td style="padding:5px 8px;text-align:right;font-family:monospace">'+taxa.toFixed(2)+'%</td>'
+        +'<td style="padding:5px 8px;text-align:right;font-family:monospace;color:#2a6b2a;font-weight:600">'+fmtR(liqVal)+'</td>'
+        +'<td style="padding:5px 8px;font-size:10px;color:#777">'+(st.obs||'')+'</td>'
+        +'</tr>';
+    }).join('');
+    antecpHTML = '<div style="margin-bottom:20px">'
+      +'<div style="background:#2a6b2a;color:#fff;padding:6px 10px;border-radius:4px 4px 0 0;font-weight:700;font-size:12px;display:flex;justify-content:space-between">'
+      +'<span>📥 Antecipações de Recebíveis — '+antecpRows.length+' selecionado'+(antecpRows.length!==1?'s':'')+'</span>'
+      +'<span>Líquido: '+fmtR(liq)+'</span></div>'
+      +'<table style="width:100%;border-collapse:collapse;font-size:11px;border:1px solid #ddd;border-top:none">'
+      +'<thead><tr style="background:#f5f5f5;font-size:10px;color:#555"><th>Cliente</th><th>Vencimento</th><th style="text-align:right">Valor Bruto</th><th style="text-align:right">Taxa</th><th style="text-align:right">Líquido</th><th>Obs.</th></tr></thead>'
+      +'<tbody>'+antecpItems+'</tbody></table></div>';
+  }
+
+  // ── Build full HTML ─────────────────────────────────────────
+  var projColor = proj >= 0 ? '#1a4d80' : '#c05030';
+  var html = '<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8">'
+    +'<title>Decisão de Pagamento — '+DD_TODAY+'</title>'
+    +'<style>'
+    +'*{box-sizing:border-box;margin:0;padding:0}body{font-family:Arial,sans-serif;font-size:12px;color:#222;padding:24px}'
+    +'h1{font-size:18px;font-weight:700;color:#2a1a14}h2{font-size:13px;font-weight:700;color:#5a4038;margin-bottom:10px}'
+    +'.cockpit{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin:16px 0}'
+    +'.ck{border:1px solid #ddd;border-radius:6px;padding:10px 12px;border-left:3px solid #999}'
+    +'.ck-lbl{font-size:9px;text-transform:uppercase;letter-spacing:.5px;color:#888;margin-bottom:4px}'
+    +'.ck-val{font-size:16px;font-weight:700;font-family:monospace}'
+    +'table th{text-align:left;padding:5px 8px;font-weight:600}'
+    +'@media print{body{padding:10px}button{display:none!important}}'
+    +'</style></head><body>'
+    +'<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:4px">'
+    +'<div><h1>Decisão de Pagamento</h1><div style="color:#888;font-size:11px;margin-top:3px">'+periodoStr+'</div></div>'
+    +'<div style="text-align:right;font-size:10px;color:#aaa">Gerado em '+new Date().toLocaleString('pt-BR')+'<br>'
+    +'<button onclick="window.print()" style="margin-top:6px;padding:5px 14px;background:#d97654;color:#fff;border:none;border-radius:4px;cursor:pointer;font-size:11px;font-weight:600">🖨 Imprimir</button></div>'
+    +'</div>'
+    +'<hr style="border:none;border-top:2px solid #d97654;margin-bottom:12px">'
+    // Cockpit
+    +'<div class="cockpit">'
+    +'<div class="ck" style="border-left-color:#3b6cb7"><div class="ck-lbl">Saldo Bancário</div><div class="ck-val" style="color:#3b6cb7">'+fmtR(saldo)+'</div></div>'
+    +'<div class="ck" style="border-left-color:#c05030"><div class="ck-lbl">A Pagar no Período</div><div class="ck-val" style="color:#c05030">('+fmtR(totalPagar)+')</div><div style="font-size:10px;color:#aaa;margin-top:2px">'+titles.length+' títulos</div></div>'
+    +'<div class="ck" style="border-left-color:#3a8c50"><div class="ck-lbl">A Receber no Período</div><div class="ck-val" style="color:#3a8c50">'+fmtR(totalRec)+'</div><div style="font-size:10px;color:#aaa;margin-top:2px">'+recvs.length+' títulos</div></div>'
+    +'<div class="ck" style="border-left-color:#d97654"><div class="ck-lbl">✓ Selecionado p/ Pagar</div><div class="ck-val" style="color:#d97654">('+fmtR(selPagar)+')</div><div style="font-size:10px;color:#aaa;margin-top:2px">'+selQ+' selecionados</div></div>'
+    +'<div class="ck" style="border-left-color:'+projColor+';background:'+(proj>=0?'#eff4fc':'#fdf0eb')+'">'
+    +'<div class="ck-lbl">Saldo Projetado</div><div class="ck-val" style="color:'+projColor+'">'+(proj>=0?'':'')+fmtR(proj)+'</div>'
+    +'<div style="font-size:9px;color:#aaa;margin-top:2px">Bancário + Receber − Pagar Selecionado</div></div>'
+    +'</div>'
+    // Sections
+    +sectionHTML('✓ Pagar Hoje','#3a7d44',groups.pagar,false)
+    +sectionHTML('↷ Atrasar','#c05030',groups.atrasar,true)
+    +sectionHTML('✎ Negociar','#3b6cb7',groups.negociar,true)
+    +sectionHTML('— Pendente','#888',groups.pendente,false)
+    +antecpHTML
+    +'</body></html>';
+
+  var win = window.open('','_blank','width=1000,height=700');
+  if(!win){ alert('Habilite pop-ups para gerar o PDF.'); return; }
+  win.document.write(html);
+  win.document.close();
+  win.focus();
 }
 
 // Init assíncrono — aguarda dados externos
