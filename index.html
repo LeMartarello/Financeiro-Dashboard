@@ -119,6 +119,25 @@ body.sidebar-collapsed #main{margin-left:0;}
 #page-base-pagar.active, #page-base-receber.active, #page-orig-bases.active{
   display:flex;flex-direction:column;flex:1;overflow:hidden;min-height:0;
 }
+#page-sinc.active{display:flex;flex:1;overflow:hidden;min-height:0;}
+
+/* ── SINC ────────────────────────────────────────────────────── */
+.sinc-sidebar{
+  width:230px;min-width:230px;background:var(--surface);
+  border-right:1px solid var(--border);overflow-y:auto;
+  flex-shrink:0;padding:12px 8px;
+}
+.sinc-sidebar::-webkit-scrollbar{width:3px;}
+.sinc-sidebar::-webkit-scrollbar-thumb{background:var(--accent-border);border-radius:2px;}
+.sinc-content{flex:1;overflow-y:auto;padding:20px 24px;min-width:0;}
+.sinc-kpi-bar{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:18px;}
+.sinc-kpi{border-left:3px solid var(--border2);padding:8px 12px;border-radius:var(--r);background:var(--bg);}
+.sinc-kpi-label{font-size:9px;font-weight:600;color:var(--ink3);text-transform:uppercase;letter-spacing:.6px;font-family:'DM Mono',monospace;margin-bottom:3px;}
+.sinc-kpi-value{font-family:'DM Mono',monospace;font-size:17px;font-weight:700;line-height:1.1;}
+.sinc-tag-sim{background:#dcfce7;color:#166534;border-radius:10px;padding:1px 8px;font-size:10px;font-weight:700;font-family:'DM Mono',monospace;white-space:nowrap;}
+.sinc-tag-nao{background:#f3f4f6;color:#6b7280;border-radius:10px;padding:1px 8px;font-size:10px;font-weight:700;font-family:'DM Mono',monospace;white-space:nowrap;}
+.sinc-tag-ant{background:#dbeafe;color:#1e40af;border-radius:10px;padding:1px 8px;font-size:10px;font-weight:700;font-family:'DM Mono',monospace;white-space:nowrap;}
+.sinc-cb{accent-color:var(--blue);width:13px;height:13px;cursor:pointer;}
 
 /* ── FILTER PANEL (in Dashboard) ────────────────────────────── */
 .dash-layout{display:flex;gap:0;height:calc(100vh - 56px);overflow:hidden;}
@@ -410,6 +429,7 @@ tr:hover td{background:var(--surface2);}
     <div class="nav-section-lbl">Navegação</div>
     <div class="nav-item active" onclick="showPage('dash-plano',this)"><span class="nav-icon">📊</span>Dashboard</div>
 <div class="nav-item" onclick="showPage('decisao-dia',this)"><span class="nav-icon">🎯</span>Decisão de Pagamento</div>
+<div class="nav-item" onclick="showPage('sinc',this)"><span class="nav-icon">🏗</span>Empreiteiros SINC</div>
 <div class="nav-item" onclick="showPage('base-pagar',this)"><span class="nav-icon">📋</span>Base Completa — Pagar</div>
 <div class="nav-item" onclick="showPage('base-receber',this)"><span class="nav-icon">📥</span>Base Completa — Receber</div>
 <div class="nav-item" onclick="showPage('orig-bases',this)"><span class="nav-icon">⬆</span>Atualizar Bases</div>
@@ -914,6 +934,100 @@ tr:hover td{background:var(--surface2);}
   </div>
 </div>
 
+<!-- ── EMPREITEIROS SINC ────────────────────────────────────── -->
+<div class="page" id="page-sinc">
+
+  <!-- Sidebar config -->
+  <div class="sinc-sidebar">
+    <!-- Período -->
+    <div class="fcard" style="margin-bottom:6px">
+      <div class="fcard-hdr"><h3>Período</h3><button class="lnk" onclick="sincResetPeriod()">Limpar</button></div>
+      <div class="period-filter">
+        <div><div class="pf-label">De</div>
+          <input type="date" class="pf-select" id="sinc-de" onchange="renderSincTable()" style="font-family:'DM Mono',monospace;font-size:11px;">
+        </div>
+        <div><div class="pf-label">Até</div>
+          <input type="date" class="pf-select" id="sinc-ate" onchange="renderSincTable()" style="font-family:'DM Mono',monospace;font-size:11px;">
+        </div>
+      </div>
+    </div>
+    <!-- Empreiteiros SINC -->
+    <div class="fcard">
+      <div class="fcard-hdr"><h3>🏗 Empreiteiros SINC</h3><small id="sinc-estr-count">0</small></div>
+      <div style="padding:5px 6px">
+        <div style="display:flex;gap:4px;margin-bottom:5px">
+          <input id="sinc-add-input" class="fsearch" placeholder="Nome do empreiteiro..." style="margin-bottom:0;flex:1" onkeydown="if(event.key==='Enter')sincAddFromInput()">
+          <button onclick="sincAddFromInput()" class="btn-save-profile" style="font-size:11px;padding:3px 8px;flex-shrink:0">+</button>
+        </div>
+        <!-- Lista todos os fornecedores da base com checkbox -->
+        <input class="fsearch" id="sinc-forn-search" placeholder="Buscar na base..." oninput="searchF('sinc-forn-list',this.value)" style="margin-bottom:4px">
+        <div id="sinc-forn-list" style="max-height:280px;overflow-y:auto;display:flex;flex-direction:column;gap:1px"></div>
+        <div id="sinc-forn-empty" style="font-size:10px;color:var(--ink3);text-align:center;padding:6px 0">Carregando fornecedores...</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main content -->
+  <div class="sinc-content">
+    <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:14px">
+      <div>
+        <div style="font-size:15px;font-weight:600;color:var(--ink);font-family:'DM Serif Display',serif">Empreiteiros SINC</div>
+        <div style="font-size:11px;color:var(--ink3);margin-top:2px" id="sinc-period-lbl">Selecione um período</div>
+      </div>
+      <div style="display:flex;gap:8px">
+        <button class="btn btn-secondary btn-sm" onclick="sincExportExcel()">⬇ Excel</button>
+      </div>
+    </div>
+
+    <!-- KPIs -->
+    <div class="sinc-kpi-bar">
+      <div class="sinc-kpi" style="border-left-color:var(--accent)">
+        <div class="sinc-kpi-label">Títulos no Período</div>
+        <div class="sinc-kpi-value" id="sinc-k-total" style="color:var(--accent)">0</div>
+        <div style="font-size:10px;color:var(--ink3);margin-top:2px" id="sinc-k-total-v">R$ 0,00</div>
+      </div>
+      <div class="sinc-kpi" style="border-left-color:var(--blue)">
+        <div class="sinc-kpi-label">Na SINC</div>
+        <div class="sinc-kpi-value" id="sinc-k-nasinc" style="color:var(--blue)">0</div>
+        <div style="font-size:10px;color:var(--ink3);margin-top:2px" id="sinc-k-nasinc-v">R$ 0,00</div>
+      </div>
+      <div class="sinc-kpi" style="border-left-color:#166534">
+        <div class="sinc-kpi-label">Antecipados</div>
+        <div class="sinc-kpi-value" id="sinc-k-ant" style="color:#166534">0</div>
+        <div style="font-size:10px;color:var(--ink3);margin-top:2px" id="sinc-k-ant-v">R$ 0,00</div>
+      </div>
+      <div class="sinc-kpi" style="border-left-color:#92400e">
+        <div class="sinc-kpi-label">Venc. Alterado (+14d)</div>
+        <div class="sinc-kpi-value" id="sinc-k-alt" style="color:#92400e">0</div>
+        <div style="font-size:10px;color:var(--ink3);margin-top:2px" id="sinc-k-alt-v">R$ 0,00</div>
+      </div>
+      <div class="sinc-kpi" style="border-left-color:var(--red)">
+        <div class="sinc-kpi-label">Não na SINC</div>
+        <div class="sinc-kpi-value" id="sinc-k-fora" style="color:var(--red)">0</div>
+        <div style="font-size:10px;color:var(--ink3);margin-top:2px" id="sinc-k-fora-v">R$ 0,00</div>
+      </div>
+    </div>
+
+    <!-- Table -->
+    <div class="panel-card" style="overflow-x:auto">
+      <table id="sinc-table" style="min-width:980px">
+        <thead><tr>
+          <th style="width:22%">Empreiteiro</th>
+          <th style="width:18%">Plano Financeiro</th>
+          <th style="width:8%">Venc. Original</th>
+          <th class="tr" style="width:10%">Valor</th>
+          <th style="width:8%;text-align:center">Na SINC</th>
+          <th style="width:8%;text-align:center">Antecipou</th>
+          <th style="width:10%">Venc. Efetivo</th>
+          <th style="width:16%">Observação</th>
+        </tr></thead>
+        <tbody id="sinc-body"></tbody>
+      </table>
+      <div class="empty" id="sinc-empty" style="display:none">Nenhum título encontrado. Selecione um período e marque os empreiteiros SINC na barra lateral.</div>
+    </div>
+  </div>
+</div>
+
 </div><!-- /#main -->
 
 <!-- /#main -->
@@ -1068,6 +1182,7 @@ function showPage(id,el){
   const titles = {
     'dash-plano':'Dashboard',
     'decisao-dia':'🎯 Decisão de Pagamento',
+    'sinc':'🏗 Empreiteiros SINC',
     'base-pagar':'Base Completa — Pagar',
     'base-receber':'Base Completa — Receber',
     'orig-bases':'Atualizar Bases'
@@ -1083,6 +1198,7 @@ function showPage(id,el){
   if(pg) pg.classList.add('active');
   if(id==='dash-plano')   updateAll();
   if(id==='decisao-dia')  renderDecisaoDia();
+  if(id==='sinc')         renderSincPage();
   if(id==='base-pagar')   filterBase('p');
   if(id==='base-receber') filterBase('r');
 }
@@ -3838,24 +3954,19 @@ function getDDTitles() {
   var p=ddGetPeriod();
   var onlyEstr = document.getElementById('dd-only-estr');
   var filterEstr = onlyEstr && onlyEstr.checked;
-  var seen = new Set();
   return RAW_PAGAR.filter(function(r){
     if(typeof selEmpresas!=='undefined'&&!selEmpresas.has(r.empresa)) return false;
     if(typeof selTipos!=='undefined'&&!selTipos.has(r.tipo_doc)) return false;
     if(typeof selFornecedores!=='undefined'&&!selFornecedores.has(r.fornecedor)) return false;
     if(typeof allPlanos!=='undefined'&&allPlanos.length>0&&r.plano_fin&&!selPlanos.has(r.plano_fin)) return false;
     if(filterEstr && !isCritico(r.fornecedor)) return false;
-    var k=ddKey(r);
-    if(seen.has(k)) return false;
-    // Incluir se data original está no período
+    // Inclui se vencimento original está no período (igual ao fluxo)
     var inByDate = r.data>=p.de && r.data<=p.ate;
-    // Incluir se nova data (atrasar/negociar) está no período mas original NÃO está
-    var st=DD_STATE[k]||{};
+    // Inclui também se foi remarcado (novaData) para dentro do período, vindo de fora
+    var st=DD_STATE[ddKey(r)]||{};
     var nd=st.novaData;
     var inByNovaData = nd && nd>=p.de && nd<=p.ate && !inByDate;
-    if(!inByDate && !inByNovaData) return false;
-    seen.add(k);
-    return true;
+    return inByDate || inByNovaData;
   });
 }
 function getDDReceivables() {
@@ -3886,23 +3997,24 @@ function saveDDState() {
 }
 function updateDDCockpit() {
   var titles=getDDTitles(), recvs=getDDReceivables();
+  // "A Pagar no Período" = todos os títulos do período (mesma base do fluxo)
   var totalPagar=titles.reduce(function(s,r){return s+Math.abs(r.valor);},0);
   var totalReceber=recvs.reduce(function(s,r){return s+Math.abs(r.valor);},0);
+  // "Selecionado p/ Pagar" = só os marcados explicitamente como 'pagar'
   var selPagar=0,selQ=0;
-  titles.forEach(function(r){var k=ddKey(r);if(DD_STATE[k]&&DD_STATE[k].acao==='pagar'){selPagar+=Math.abs(r.valor);selQ++;}});
-  // Antecipações EXTRAS: apenas recebíveis FORA do período selecionado que foram marcados
-  // (os do período já entram em totalReceber — evita dupla contagem)
+  titles.forEach(function(r){var k=ddKey(r);var st=DD_STATE[k]||{acao:'pagar'};if(st.acao==='pagar'){selPagar+=Math.abs(r.valor);selQ++;}});
+  // Antecipações extras fora do período selecionado
   var p=ddGetPeriod();
   var liqAntecpExtras=0;
   getAllFutureReceivables().forEach(function(r){
-    if(r.data>=p.de && r.data<=p.ate) return; // já está em totalReceber
+    if(r.data>=p.de && r.data<=p.ate) return; // já em totalReceber
     var k=antecpKey(r), st=DD_STATE[k];
     if(st&&st.sel){
       var taxa=parseFloat(st.taxa)||0;
       liqAntecpExtras+=Math.abs(r.valor)*(1-taxa/100);
     }
   });
-  // Saldo Projetado = Bancário + Receber do período + Antecipações extras (fora do período) − Pagar selecionado
+  // Saldo Projetado = Bancário + Receber do período + Antecip. extras − Pagar selecionado
   var saldo=ddGetSaldo(),proj=saldo+totalReceber+liqAntecpExtras-selPagar,el;
   el=document.getElementById('dd-total-val');if(el)el.textContent=totalPagar?fmtNeg(-totalPagar):'R$ 0,00';
   el=document.getElementById('dd-total-q');if(el)el.textContent=titles.length+' títulos';
@@ -4265,6 +4377,215 @@ function ddExportPDF() {
   win.focus();
 }
 
+// ══════════════════════════════════════════════════════════════
+// EMPREITEIROS SINC
+// ══════════════════════════════════════════════════════════════
+var SINC_SET   = new Set(); // empreiteiros marcados como SINC
+var SINC_STATE = {};         // {sincKey: {na_sinc, antecipou, obs}}
+
+function sincKey(r){ return [r.empresa||'',r.fornecedor||'',r.documento||'',r.data||''].join('||'); }
+
+function loadSincEmpreiteiros(){
+  try{ var s=localStorage.getItem('fin_sinc_empr_v1'); if(s){ JSON.parse(s).forEach(function(n){SINC_SET.add(n);}); } }catch(e){}
+}
+function saveSincEmpreiteiros(){
+  try{ localStorage.setItem('fin_sinc_empr_v1', JSON.stringify([...SINC_SET])); }catch(e){}
+}
+function loadSincState(){
+  try{ var s=localStorage.getItem('fin_sinc_state_v1'); SINC_STATE=s?JSON.parse(s):{}; }catch(e){ SINC_STATE={}; }
+}
+function saveSincState(){
+  try{ localStorage.setItem('fin_sinc_state_v1', JSON.stringify(SINC_STATE)); }catch(e){}
+}
+
+function sincAddFromInput(){
+  var el=document.getElementById('sinc-add-input');
+  var val=(el?el.value:'').trim().toUpperCase();
+  if(!val) return;
+  SINC_SET.add(val);
+  saveSincEmpreiteiros();
+  if(el) el.value='';
+  renderSincFornList();
+  renderSincTable();
+}
+
+function sincToggle(nome){
+  var key=nome.trim().toUpperCase();
+  if(SINC_SET.has(key)) SINC_SET.delete(key);
+  else SINC_SET.add(key);
+  saveSincEmpreiteiros();
+  renderSincFornList();
+  renderSincTable();
+}
+
+function renderSincFornList(){
+  var list  = document.getElementById('sinc-forn-list');
+  var empty = document.getElementById('sinc-forn-empty');
+  var count = document.getElementById('sinc-estr-count');
+  if(!list) return;
+  list.innerHTML='';
+  if(count) count.textContent=SINC_SET.size+' marcados';
+  var forn = (typeof allFornecedores!=='undefined'&&allFornecedores.length) ? allFornecedores : [];
+  if(!forn.length){ if(empty){empty.textContent='Carregue uma base de Contas a Pagar.';empty.style.display='block';} return; }
+  if(empty) empty.style.display='none';
+  forn.forEach(function(f){
+    var isSinc = SINC_SET.has(f.trim().toUpperCase());
+    var cnt = (typeof RAW_PAGAR!=='undefined') ? RAW_PAGAR.filter(function(r){return r.fornecedor===f;}).length : 0;
+    var item=document.createElement('div');
+    item.className='fitem'; item.dataset.val=f;
+    item.style.cssText=isSinc?'background:#eff4fc;border-radius:4px':'';
+    var cb=document.createElement('input');cb.type='checkbox';cb.checked=isSinc;cb.style.cssText='accent-color:var(--blue);width:11px;height:11px;flex-shrink:0;cursor:pointer';
+    cb.addEventListener('change',function(){ sincToggle(f); });
+    var lbl=document.createElement('label');
+    lbl.title=f; lbl.style.cssText='flex:1;cursor:pointer;font-size:10px;'+(isSinc?'font-weight:600;color:var(--blue)':'color:var(--ink2)');
+    lbl.textContent=trunc(f,30);
+    lbl.addEventListener('click',function(e){e.preventDefault();sincToggle(f);});
+    var sp=document.createElement('span'); sp.className='cnt'; sp.textContent=cnt;
+    item.appendChild(cb); item.appendChild(lbl); item.appendChild(sp);
+    list.appendChild(item);
+  });
+}
+
+function sincGetPeriod(){
+  var de  = (document.getElementById('sinc-de')  || {value:''}).value;
+  var ate = (document.getElementById('sinc-ate') || {value:''}).value;
+  return {de:de, ate:ate};
+}
+
+function sincResetPeriod(){
+  var de=document.getElementById('sinc-de'),ate=document.getElementById('sinc-ate');
+  if(de) de.value=''; if(ate) ate.value='';
+  renderSincTable();
+}
+
+function sincAddDays(dateStr, days){
+  var d=new Date(dateStr+'T00:00:00'); d.setDate(d.getDate()+days);
+  var pad=function(n){return String(n).padStart(2,'0');};
+  return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());
+}
+
+function getSincTitles(){
+  if(!SINC_SET.size) return [];
+  var p=sincGetPeriod();
+  return RAW_PAGAR.filter(function(r){
+    if(!SINC_SET.has((r.fornecedor||'').trim().toUpperCase())) return false;
+    if(p.de && r.data<p.de) return false;
+    if(p.ate && r.data>p.ate) return false;
+    return true;
+  });
+}
+
+function renderSincTable(){
+  // Period label
+  var p=sincGetPeriod();
+  var lbl=document.getElementById('sinc-period-lbl');
+  if(lbl){
+    if(!p.de&&!p.ate) lbl.textContent='Todos os títulos dos empreiteiros SINC';
+    else if(p.de===p.ate) lbl.textContent=new Date(p.de+'T12:00:00').toLocaleDateString('pt-BR',{weekday:'long',day:'2-digit',month:'long',year:'numeric'});
+    else lbl.textContent='Período: '+(p.de?new Date(p.de+'T12:00:00').toLocaleDateString('pt-BR'):'início')+' a '+(p.ate?new Date(p.ate+'T12:00:00').toLocaleDateString('pt-BR'):'hoje');
+  }
+
+  var titles=getSincTitles();
+  var tbody=document.getElementById('sinc-body');
+  var empty=document.getElementById('sinc-empty');
+  if(!tbody) return;
+
+  // KPIs
+  var kTotal=0,kTotalV=0,kNa=0,kNaV=0,kAnt=0,kAntV=0,kAlt=0,kAltV=0,kFora=0,kForaV=0;
+  titles.forEach(function(r){
+    var k=sincKey(r), st=SINC_STATE[k]||{};
+    var val=Math.abs(r.valor);
+    kTotal++; kTotalV+=val;
+    if(st.na_sinc){ kNa++; kNaV+=val;
+      if(st.antecipou){ kAnt++; kAntV+=val; kAlt++; kAltV+=val; }
+    } else { kFora++; kForaV+=val; }
+  });
+  function _s(id,v){ var e=document.getElementById(id); if(e) e.textContent=v; }
+  _s('sinc-k-total',kTotal); _s('sinc-k-total-v',fmtPos(kTotalV));
+  _s('sinc-k-nasinc',kNa);   _s('sinc-k-nasinc-v',fmtPos(kNaV));
+  _s('sinc-k-ant',kAnt);     _s('sinc-k-ant-v',fmtPos(kAntV));
+  _s('sinc-k-alt',kAlt);     _s('sinc-k-alt-v',fmtPos(kAltV));
+  _s('sinc-k-fora',kFora);   _s('sinc-k-fora-v',fmtPos(kForaV));
+
+  // Table
+  tbody.innerHTML='';
+  if(!titles.length){ if(empty) empty.style.display='block'; return; }
+  if(empty) empty.style.display='none';
+
+  titles.sort(function(a,b){ return a.fornecedor.localeCompare(b.fornecedor,'pt-BR')||a.data.localeCompare(b.data); });
+
+  titles.forEach(function(r){
+    var k=sincKey(r);
+    var st=SINC_STATE[k]||{na_sinc:false,antecipou:false,obs:''};
+    var vencEfetivo = (st.na_sinc&&st.antecipou) ? sincAddDays(r.data,14) : r.data;
+    var antecipouChanged = vencEfetivo!==r.data;
+
+    var tr=document.createElement('tr');
+    if(st.na_sinc&&st.antecipou) tr.style.background='#eff4fc';
+    else if(st.na_sinc) tr.style.background='#f0fdf4';
+
+    tr.innerHTML='<td title="'+r.fornecedor+'" style="font-size:12px">'+trunc(r.fornecedor,26)+'</td>'
+      +'<td title="'+(r.plano_fin||'')+'" style="font-size:11px;color:var(--ink2)">'+trunc(r.plano_fin||'—',22)+'</td>'
+      +'<td style="font-family:DM Mono,monospace;font-size:11px;white-space:nowrap">'+fmtDate(r.data)+'</td>'
+      +'<td class="tr" style="color:var(--red);font-weight:600">'+fmtNeg(r.valor)+'</td>'
+      +'<td style="text-align:center"></td>'  // Na SINC
+      +'<td style="text-align:center"></td>'  // Antecipou
+      +'<td style="font-family:DM Mono,monospace;font-size:11px;white-space:nowrap;'+(antecipouChanged?'color:#1e40af;font-weight:700':'')+'">'+fmtDate(vencEfetivo)+(antecipouChanged?' <span style="font-size:9px;color:#1e40af">(+14d)</span>':'')+'</td>'
+      +'<td></td>';
+
+    // Na SINC checkbox
+    var cbSinc=document.createElement('input');cbSinc.type='checkbox';cbSinc.className='sinc-cb';cbSinc.checked=!!st.na_sinc;
+    cbSinc.addEventListener('change',(function(k_,tr_,r_){return function(){
+      SINC_STATE[k_]=SINC_STATE[k_]||{};
+      SINC_STATE[k_].na_sinc=this.checked;
+      if(!this.checked) SINC_STATE[k_].antecipou=false; // reset antecipou se sair da SINC
+      saveSincState();renderSincTable();
+    };})(k,tr,r));
+    tr.querySelectorAll('td')[4].appendChild(cbSinc);
+
+    // Antecipou checkbox — só habilitado se Na SINC
+    var cbAnt=document.createElement('input');cbAnt.type='checkbox';cbAnt.className='sinc-cb';cbAnt.checked=!!st.antecipou;cbAnt.disabled=!st.na_sinc;
+    cbAnt.style.opacity=st.na_sinc?'1':'0.3';
+    cbAnt.addEventListener('change',(function(k_){return function(){
+      SINC_STATE[k_]=SINC_STATE[k_]||{};SINC_STATE[k_].antecipou=this.checked;
+      saveSincState();renderSincTable();
+    };})(k));
+    tr.querySelectorAll('td')[5].appendChild(cbAnt);
+
+    // Obs
+    var obs=document.createElement('input');obs.type='text';obs.className='dd-obs-input';
+    obs.placeholder='Observação...';obs.value=st.obs||'';
+    obs.addEventListener('change',(function(k_){return function(){
+      SINC_STATE[k_]=SINC_STATE[k_]||{};SINC_STATE[k_].obs=this.value;saveSincState();
+    };})(k));
+    tr.querySelectorAll('td')[7].appendChild(obs);
+    tbody.appendChild(tr);
+  });
+}
+
+function renderSincPage(){
+  loadSincState();
+  renderSincFornList();
+  renderSincTable();
+}
+
+function sincExportExcel(){
+  var titles=getSincTitles();
+  if(!titles.length){ alert('Nenhum título para exportar.'); return; }
+  var headers=['Empreiteiro','Plano Financeiro','Empresa','Documento','Tipo','Venc. Original','Valor (R$)','Na SINC','Antecipou','Venc. Efetivo','Observação'];
+  var rows=titles.map(function(r){
+    var k=sincKey(r),st=SINC_STATE[k]||{};
+    var vef=(st.na_sinc&&st.antecipou)?sincAddDays(r.data,14):r.data;
+    return [r.fornecedor,r.plano_fin||'',r.empresa,r.documento,r.tipo_doc,fmtDate(r.data),Math.abs(r.valor),st.na_sinc?'Sim':'Não',st.antecipou?'Sim':'Não',fmtDate(vef),st.obs||''];
+  });
+  var wb=XLSX.utils.book_new();
+  var ws=XLSX.utils.aoa_to_sheet([headers,...rows]);
+  ws['!cols']=headers.map(function(h,i){return {wch:Math.max(h.length,...rows.map(function(r){return String(r[i]||'').length;}))+2};});
+  XLSX.utils.book_append_sheet(wb,ws,'Empreiteiros SINC');
+  var today=new Date().toISOString().slice(0,10).replace(/-/g,'');
+  XLSX.writeFile(wb,'empreiteiros_sinc_'+today+'.xlsx');
+}
+
 // Init assíncrono — aguarda dados externos
 loadAllData().then(() => {
   // Init APR
@@ -4278,6 +4599,7 @@ loadAllData().then(() => {
   renderProfiles('apr');
   initProfilesAPR();
   loadCriticos();
+  loadSincEmpreiteiros();
   // Init PR
   curB64Recebidas = ORIG_B64_RECEBIDAS_PR;
   if (typeof initDashPR === 'function') initDashPR();
