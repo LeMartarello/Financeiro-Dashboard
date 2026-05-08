@@ -4119,7 +4119,9 @@ function ddSetPeriod(days) {
   renderDecisaoDia();
 }
 function ddKey(r) {
-  return [r.empresa||'',r.fornecedor||'',r.documento||'',r.data||''].join('||');
+  // Use titulo (Sienge ID) when available — it's the most reliable unique identifier.
+  // Fallback adds valor to disambiguate titles with same doc/date but different amounts.
+  return [r.empresa||'', r.fornecedor||'', r.documento||'', r.data||'', r.titulo||'', String(Math.abs(r.valor||0))].join('||');
 }
 function ddGetSaldo() {
   var el=document.getElementById('dd-saldo-input');
