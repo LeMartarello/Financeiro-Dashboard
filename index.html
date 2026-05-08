@@ -4506,8 +4506,9 @@ function renderDecisaoDia() {
     // Banco select
     var bsel=document.createElement('select');bsel.className='dd-banco-sel';
     var bancosOpts='<option value="">— banco —</option>';
-    getCBList().forEach(function(c){bancosOpts+='<option value="'+c.id+'"'+(st.banco===c.id?' selected':'')+'>'+c.nome+'</option>';});
+    getCBList().forEach(function(c){bancosOpts+='<option value="'+c.id+'">'+c.nome+'</option>';});
     bsel.innerHTML=bancosOpts;
+    bsel.value=st.banco||''; // set explicitly — more reliable than 'selected' in innerHTML string
     bsel.addEventListener('change',(function(k_){return function(){DD_STATE[k_]=DD_STATE[k_]||{};DD_STATE[k_].banco=this.value;saveDDState();updateDDCockpit();};})(k));
     tr.querySelectorAll('td')[8].appendChild(bsel);
     // Obs
