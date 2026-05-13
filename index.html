@@ -529,7 +529,8 @@ th.dd-sortable:not(.sort-asc):not(.sort-desc) .sort-icon::after{content:'⇅';}
         <span class="sync-dot"></span>
         <span class="sync-lbl" id="sync-lbl">Sem integração</span>
       </div>
-      <button class="btn-export" onclick="exportarVersaoAtualizada()" >⬇ Exportar versão atualizada</button>
+      <button class="btn-export" onclick="gasSyncAndRefresh()" style="margin-right:4px">🔄 Sincronizar</button>
+      <button class="btn-export" onclick="exportarVersaoAtualizada()">⬇ Exportar versão atualizada</button>
     </div>
   </div>
 
@@ -933,7 +934,6 @@ th.dd-sortable:not(.sort-asc):not(.sort-desc) .sort-icon::after{content:'⇅';}
         <div style="font-size:11px;color:var(--ink3);margin-top:2px" id="dd-date-lbl">Títulos vencidos e vencendo hoje</div>
       </div>
       <div style="display:flex;gap:8px">
-        <button class="btn btn-secondary btn-sm" onclick="gasSyncAndRefresh()" title="Buscar dados mais recentes do Sheets">🔄 Sincronizar</button>
         <button class="btn btn-secondary btn-sm" onclick="ddExportJSON()">💾 Salvar decisões</button>
         <button class="btn btn-secondary btn-sm" onclick="document.getElementById('dd-import-file').click()">📂 Restaurar</button>
         <input type="file" id="dd-import-file" accept=".json" style="display:none" onchange="ddImportJSON(this)">
@@ -5146,12 +5146,24 @@ function gasSaveDebounced(type, data) {
   }, 1200);
 }
 
-// ── Sync from Sheets and refresh current view ────────────────
+// ── Sync from Sheets and refresh ALL modules ─────────────────
 function gasSyncAndRefresh() {
   setSyncStatus('busy', 'Sincronizando…');
   gasLoadAll().then(function() {
     reconcileDecisions();
+    // Refresh every active module
+    updateAll();
     renderDecisaoDia();
+    renderEstrategicosPanel();
+    renderSincPage();
+    renderConfigPage();
+    if (typeof renderSincFornList === 'function') renderSincFornList();
+    // Re-render whichever page is currently active
+    var activePage = document.querySelector('.page.active');
+    var pageId = activePage ? activePage.id.replace('page-','') : '';
+    if (pageId === 'base-pagar')   filterBase('p');
+    if (pageId === 'base-receber') filterBase('r');
+    setSyncStatus('ok', 'Atualizado');
   }).catch(function() {
     setSyncStatus('err', 'Falha ao sincronizar');
   });
