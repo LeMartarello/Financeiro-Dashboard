@@ -6,6 +6,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
 <title>Financeiro — Dashboard</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
 
 @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=DM+Serif+Display&family=DM+Mono:wght@400;500&family=Roboto:wght@400;500;600&display=swap');
@@ -1157,24 +1158,22 @@ th.dd-sortable:not(.sort-asc):not(.sort-desc) .sort-icon::after{content:'⇅';}
       <button class="btn btn-primary btn-sm" onclick="openContaModal(null)" style="font-size:12px">+ Nova Conta</button>
     </div>
 
-    <!-- Google Apps Script -->
+    <!-- Supabase Status -->
     <div class="panel-card" style="margin-bottom:16px">
-      <div style="font-size:13px;font-weight:600;color:var(--ink);margin-bottom:4px;font-family:'DM Serif Display',serif">🔗 Integração Google Sheets</div>
-      <div style="font-size:11px;color:var(--ink3);margin-bottom:10px">Cole a URL do Apps Script para salvar todas as decisões automaticamente no Google Sheets — persistindo entre reimportações.</div>
-      <div class="gas-url-row">
-        <input id="gas-url-input" class="gas-url-input" type="url" placeholder="https://script.google.com/macros/s/SEU_ID/exec">
-        <button class="btn btn-primary btn-sm" onclick="gasSaveUrl()">Salvar</button>
-        <button class="btn btn-secondary btn-sm" onclick="gasTestConnection()">Testar conexão</button>
-        <button class="btn btn-secondary btn-sm" onclick="gasForcePushAll()">⬆ Enviar tudo</button>
+      <div style="font-size:13px;font-weight:600;color:var(--ink);margin-bottom:4px;font-family:'DM Serif Display',serif">🗄 Banco de Dados — Supabase</div>
+      <div style="font-size:11px;color:var(--ink3);margin-bottom:10px">Todas as decisões, bases e configurações são salvas automaticamente no Supabase PostgreSQL.</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <button class="btn btn-primary btn-sm" onclick="gasTestConnection()">Testar conexão</button>
+        <button class="btn btn-secondary btn-sm" onclick="gasForcePushAll()">⬆ Enviar configurações</button>
+        <button class="btn btn-secondary btn-sm" onclick="sbUploadBasesAfterParse()" id="btn-upload-bases">⬆ Reenviar bases</button>
       </div>
-      <div id="gas-url-status" style="font-size:11px;margin-top:8px;min-height:18px"></div>
+      <div id="gas-url-status" style="font-size:11px;margin-top:10px;min-height:18px;color:var(--ink3)"></div>
       <div style="margin-top:12px;padding:10px 14px;background:var(--surface2);border-radius:var(--r);font-size:11px;color:var(--ink3);line-height:1.8">
-        <strong style="color:var(--ink)">Como configurar (5 min):</strong><br>
-        1. Acesse <a href="https://script.google.com" target="_blank" style="color:var(--blue)">script.google.com</a> → Novo projeto<br>
-        2. Cole o código do arquivo <strong>backend_apps_script.gs</strong> fornecido<br>
-        3. Clique em <strong>Implantar → Nova implantação → App da Web</strong><br>
-        4. "Executar como": <strong>Eu</strong> · "Quem tem acesso": <strong>Qualquer pessoa</strong><br>
-        5. Copie a URL e cole no campo acima → Salvar → Testar conexão
+        <strong style="color:var(--ink)">Como funciona:</strong><br>
+        • Decisões de pagamento são salvas automaticamente a cada alteração<br>
+        • Ao subir uma base nova (Contas a Pagar/Receber), ela é enviada ao Supabase automaticamente<br>
+        • Todo o time vê os dados atualizados em tempo real via "🔄 Sincronizar"<br>
+        • Use "⬆ Reenviar bases" se quiser forçar o reenvio da base atual
       </div>
     </div>
 
@@ -2132,6 +2131,8 @@ function handleUpload(file,tipo){
         const _nr1=document.getElementById('nav-ref');if(_nr1)_nr1.textContent='Ref. '+todayStr();
         const navRef=document.getElementById('nav-ref');if(navRef)navRef.textContent='Ref. '+todayStr();
         addUploadLog('pagar', curNameP, newData.length); showMsg(newData.length+' lançamentos carregados.','ok','pagar');
+        reconcileDecisions();
+        setTimeout(function(){ sbUploadBase('base_pagar', RAW_PAGAR, null).then(function(){ setSyncStatus('ok'); sbShowConfigStatus('✓ Base Pagar enviada ao Supabase.','#3a8c50'); }).catch(function(e){ setSyncStatus('err'); sbShowConfigStatus('✗ Erro ao enviar base: '+e.message,'var(--red)'); }); }, 300);
       } else {
         if(RAW_RECEBER.length)histR.unshift({name:curNameR,date:todayStr(),b64:curB64R,count:RAW_RECEBER.length,total:RAW_RECEBER.reduce((s,r)=>s+r.valor,0)});
         curB64R=b64; curNameR=name; RAW_RECEBER=newData; expandedYears.clear(); initFiltersFromData(); updateAll(); filterBase('r');
@@ -2141,6 +2142,7 @@ function handleUpload(file,tipo){
         const _nr2=document.getElementById('nav-ref');if(_nr2)_nr2.textContent='Ref. '+todayStr();
         const navRef2=document.getElementById('nav-ref');if(navRef2)navRef2.textContent='Ref. '+todayStr();
         addUploadLog('receber', curNameR, newData.length); showMsg(newData.length+' lançamentos carregados.','ok','receber');
+        setTimeout(function(){ sbUploadBase('base_receber', RAW_RECEBER, null).then(function(){ setSyncStatus('ok'); sbShowConfigStatus('✓ Base Receber enviada ao Supabase.','#3a8c50'); }).catch(function(e){ setSyncStatus('err'); sbShowConfigStatus('✗ Erro ao enviar base: '+e.message,'var(--red)'); }); }, 300);
       }
     }catch(err){showMsg('Erro: '+err.message,'err',tipo);}
   };
@@ -4945,9 +4947,6 @@ function saveCB(list){
 function getCBList(){ return loadCB(); }
 
 function renderConfigPage(){
-  // Populate GAS URL field
-  var urlEl = document.getElementById('gas-url-input');
-  if (urlEl) urlEl.value = getGASUrl();
   // Render bank accounts table
   var list=loadCB();
   var tbody=document.getElementById('cfg-contas-tbody');
@@ -5094,16 +5093,20 @@ function ddBulkApply(){
 }
 
 // ══════════════════════════════════════════════════════════════
-// GOOGLE APPS SCRIPT — INTEGRAÇÃO SHEETS
+// SUPABASE — INTEGRAÇÃO BANCO DE DADOS
 // ══════════════════════════════════════════════════════════════
-var GAS_URL = 'https://script.google.com/macros/s/AKfycbwx0CGb2lq_2RcBLCYTjCCPfsh6mC2Bm8tGurDKGurbFSC4iBNytZyRyrPzb8dbBnsm/exec';
-var _gasSaveTimers = {};
-var _gasOnline = false;
+var SB_URL = 'https://lgyzngyzpjzmyohcinsr.supabase.co';
+var SB_KEY = 'sb_publishable_z2TXRtBwKiBEGKEYxNe7JA_jXrtOzfg';
+var _sbClient = null;
+var _sbOnline = false;
+var _sbSaveTimers = {};
+var _sbUploadInProgress = false;
 
-function getGASUrl() {
-  if (GAS_URL) return GAS_URL;
-  try { GAS_URL = localStorage.getItem('fin_gas_url') || ''; } catch(e) {}
-  return GAS_URL;
+function getSB() {
+  if (!_sbClient && typeof supabase !== 'undefined') {
+    _sbClient = supabase.createClient(SB_URL, SB_KEY);
+  }
+  return _sbClient;
 }
 
 function setSyncStatus(state, msg) {
@@ -5115,75 +5118,104 @@ function setSyncStatus(state, msg) {
   lbl.textContent = msg || labels[state] || state;
 }
 
-// ── GET from Sheets ──────────────────────────────────────────
-function gasGet(type) {
-  var url = getGASUrl();
-  if (!url) return Promise.resolve(null);
-  return fetch(url + '?type=' + encodeURIComponent(type), {cache:'no-store'})
-    .then(function(r){ return r.json(); })
-    .then(function(d){ return (d && d.ok) ? d.data : null; });
+// ── Save config (small data: decisoes, bancos, estrategicos…) ──
+function sbSaveConfig(chave, dados) {
+  var sb = getSB(); if (!sb) return Promise.resolve();
+  return sb.from('config')
+    .upsert({chave: chave, dados: dados, atualizado_em: new Date().toISOString()}, {onConflict: 'chave'})
+    .then(function(res) {
+      if (res.error) throw res.error;
+    });
 }
 
-// ── POST to Sheets (CORS-safe: no Content-Type header) ───────
-function gasPost(type, data) {
-  var url = getGASUrl();
-  if (!url) return Promise.resolve(null);
-  return fetch(url, {
-    method: 'POST',
-    body: JSON.stringify({type: type, data: data})
-  }).then(function(r){ return r.json(); });
+// ── Load config ────────────────────────────────────────────────
+function sbLoadConfig(chave) {
+  var sb = getSB(); if (!sb) return Promise.resolve(null);
+  return sb.from('config').select('dados').eq('chave', chave).maybeSingle()
+    .then(function(res) {
+      if (res.error) throw res.error;
+      return res.data ? res.data.dados : null;
+    });
 }
 
-// ── Debounced save (avoids API spam on rapid changes) ────────
+// ── Debounced save for rapid changes ──────────────────────────
 function gasSaveDebounced(type, data) {
-  if (!getGASUrl()) return;
-  clearTimeout(_gasSaveTimers[type]);
-  _gasSaveTimers[type] = setTimeout(function() {
+  var sb = getSB(); if (!sb) return;
+  clearTimeout(_sbSaveTimers[type]);
+  _sbSaveTimers[type] = setTimeout(function() {
     setSyncStatus('busy');
-    gasPost(type, data)
-      .then(function(r){ if(r&&r.ok) setSyncStatus('ok'); else setSyncStatus('err'); })
-      .catch(function(){ setSyncStatus('err'); });
+    sbSaveConfig(type, data)
+      .then(function() { setSyncStatus('ok'); })
+      .catch(function() { setSyncStatus('err'); });
   }, 1200);
 }
 
-// ── Sync from Sheets and refresh ALL modules ─────────────────
-function gasSyncAndRefresh() {
-  setSyncStatus('busy', 'Sincronizando…');
-  gasLoadAll().then(function() {
-    reconcileDecisions();
-    // Refresh every active module
-    updateAll();
-    renderDecisaoDia();
-    renderEstrategicosPanel();
-    renderSincPage();
-    renderConfigPage();
-    if (typeof renderSincFornList === 'function') renderSincFornList();
-    // Re-render whichever page is currently active
-    var activePage = document.querySelector('.page.active');
-    var pageId = activePage ? activePage.id.replace('page-','') : '';
-    if (pageId === 'base-pagar')   filterBase('p');
-    if (pageId === 'base-receber') filterBase('r');
-    setSyncStatus('ok', 'Atualizado');
-  }).catch(function() {
-    setSyncStatus('err', 'Falha ao sincronizar');
-  });
+// ── Fetch all rows from a base table (with pagination) ─────────
+function sbFetchAllRows(table) {
+  var sb = getSB(); if (!sb) return Promise.resolve([]);
+  var allRows = [];
+  var pageSize = 1000;
+  function fetchPage(from) {
+    return sb.from(table).select('*').range(from, from + pageSize - 1)
+      .then(function(res) {
+        if (res.error) throw res.error;
+        allRows = allRows.concat(res.data || []);
+        if (res.data && res.data.length === pageSize) return fetchPage(from + pageSize);
+        return allRows;
+      });
+  }
+  return fetchPage(0);
 }
 
-// ── Load ALL data from Sheets on startup ─────────────────────
+// ── Upload base to Supabase in batches ─────────────────────────
+function sbUploadBase(table, rows, onProgress) {
+  var sb = getSB(); if (!sb) return Promise.resolve();
+  if (!rows || !rows.length) return Promise.resolve();
+  // Strip internal fields not in DB
+  var clean = rows.map(function(r) {
+    var o = Object.assign({}, r);
+    delete o.id; delete o.carregado_em;
+    return o;
+  });
+  var batchSize = 500;
+  var total = Math.ceil(clean.length / batchSize);
+  var current = 0;
+  // Delete existing data first
+  return sb.from(table).delete().gte('id', 0)
+    .then(function() {
+      function nextBatch() {
+        if (current >= clean.length) return Promise.resolve();
+        var batch = clean.slice(current, current + batchSize);
+        current += batchSize;
+        if (onProgress) onProgress(Math.min(current, clean.length), clean.length);
+        return sb.from(table).insert(batch)
+          .then(function(res) {
+            if (res.error) throw res.error;
+            return nextBatch();
+          });
+      }
+      return nextBatch();
+    });
+}
+
+// ── Load ALL data from Supabase on startup ─────────────────────
 function gasLoadAll() {
-  var url = getGASUrl();
-  if (!url) { setSyncStatus('off'); return Promise.resolve(); }
-  setSyncStatus('busy', 'Carregando do Sheets…');
+  var sb = getSB();
+  if (!sb) { setSyncStatus('off'); return Promise.resolve(); }
+  setSyncStatus('busy', 'Carregando…');
   return Promise.all([
-    gasGet('decisoes'),
-    gasGet('contas_bancarias'),
-    gasGet('estrategicos'),
-    gasGet('sinc_empreiteiros'),
-    gasGet('sinc_estado'),
-    gasGet('filtros')
+    sbLoadConfig('decisoes'),
+    sbLoadConfig('contas_bancarias'),
+    sbLoadConfig('estrategicos'),
+    sbLoadConfig('sinc_empreiteiros'),
+    sbLoadConfig('sinc_estado'),
+    sbLoadConfig('filtros'),
+    sbFetchAllRows('base_pagar'),
+    sbFetchAllRows('base_receber')
   ]).then(function(results) {
     var decisoes=results[0], contas=results[1], estrateg=results[2],
-        sincEmpr=results[3], sincEst=results[4], filtros=results[5];
+        sincEmpr=results[3], sincEst=results[4], filtros=results[5],
+        basePagar=results[6], baseReceber=results[7];
 
     if (decisoes && typeof decisoes === 'object') {
       DD_STATE = decisoes;
@@ -5206,31 +5238,37 @@ function gasLoadAll() {
     }
     if (filtros && typeof filtros === 'object') {
       try {
-        if (filtros.auto_apr) localStorage.setItem('fin_auto_apr', filtros.auto_apr);
+        if (filtros.auto_apr)     localStorage.setItem('fin_auto_apr',     filtros.auto_apr);
         if (filtros.profiles_apr) localStorage.setItem('fin_profiles_apr', filtros.profiles_apr);
       } catch(e) {}
     }
-    _gasOnline = true;
+    // Load bases from Supabase if available
+    if (basePagar && basePagar.length) {
+      RAW_PAGAR = basePagar;
+      INITIAL_PAGAR = basePagar.map(function(r){ return Object.assign({},r); });
+      initFiltersFromData();
+      updateAll();
+    }
+    if (baseReceber && baseReceber.length) {
+      RAW_RECEBER = baseReceber;
+      INITIAL_RECEBER = baseReceber.map(function(r){ return Object.assign({},r); });
+    }
+    _sbOnline = true;
     setSyncStatus('ok');
-    // Re-render ALL panels with fresh data from Sheets
     renderEstrategicosPanel();
-    renderSincFornList();
+    if (typeof renderSincFornList === 'function') renderSincFornList();
     renderConfigPage();
-    // Re-render Decisão de Pagamento if it's currently visible
     var ddPage = document.getElementById('page-decisao-dia');
     if (ddPage && ddPage.classList.contains('active')) renderDecisaoDia();
-    // Always update cockpit in case DD state changed
     if (typeof updateDDCockpit === 'function') updateDDCockpit();
   }).catch(function(e) {
-    console.warn('[GAS] Load failed:', e);
-    setSyncStatus('err', 'Sheets offline – usando cache');
-    _gasOnline = false;
+    console.warn('[SB] Load failed:', e);
+    setSyncStatus('err', 'Offline – usando cache local');
+    _sbOnline = false;
   });
 }
 
-// ── Reconcile decisions with current RAW_PAGAR ───────────────
-// When user reimports base, existing decisions are restored
-// New titles get default {acao:'pagar'}
+// ── Reconcile decisions with current RAW_PAGAR ────────────────
 function reconcileDecisions() {
   if (!RAW_PAGAR || !RAW_PAGAR.length) return;
   RAW_PAGAR.forEach(function(r) {
@@ -5239,70 +5277,102 @@ function reconcileDecisions() {
   });
 }
 
-// ── Push ALL current state to Sheets at once ─────────────────
+// ── Sync and refresh ALL modules ──────────────────────────────
+function gasSyncAndRefresh() {
+  setSyncStatus('busy', 'Sincronizando…');
+  gasLoadAll().then(function() {
+    reconcileDecisions();
+    updateAll();
+    renderDecisaoDia();
+    renderEstrategicosPanel();
+    if (typeof renderSincPage === 'function') renderSincPage();
+    renderConfigPage();
+    if (typeof renderSincFornList === 'function') renderSincFornList();
+    var activePage = document.querySelector('.page.active');
+    var pageId = activePage ? activePage.id.replace('page-','') : '';
+    if (pageId === 'base-pagar')   filterBase('p');
+    if (pageId === 'base-receber') filterBase('r');
+  }).catch(function() {
+    setSyncStatus('err', 'Falha ao sincronizar');
+  });
+}
+
+// ── Push ALL current state at once ────────────────────────────
 function gasForcePushAll() {
-  var url = getGASUrl();
-  if (!url) { alert('Configure a URL do Apps Script primeiro.'); return; }
+  var sb = getSB();
+  if (!sb) { alert('Supabase não inicializado.'); return; }
   setSyncStatus('busy', 'Enviando tudo…');
   var filtros = {};
   try {
-    filtros.auto_apr = localStorage.getItem('fin_auto_apr') || '';
+    filtros.auto_apr     = localStorage.getItem('fin_auto_apr') || '';
     filtros.profiles_apr = localStorage.getItem('fin_profiles_apr') || '';
   } catch(e) {}
   Promise.all([
-    gasPost('decisoes',          DD_STATE),
-    gasPost('contas_bancarias',  getCBList()),
-    gasPost('estrategicos',      [...CRITICOS_SET]),
-    gasPost('sinc_empreiteiros', [...SINC_SET]),
-    gasPost('sinc_estado',       SINC_STATE),
-    gasPost('filtros',           filtros)
+    sbSaveConfig('decisoes',          DD_STATE),
+    sbSaveConfig('contas_bancarias',  getCBList()),
+    sbSaveConfig('estrategicos',      [...CRITICOS_SET]),
+    sbSaveConfig('sinc_empreiteiros', [...SINC_SET]),
+    sbSaveConfig('sinc_estado',       SINC_STATE),
+    sbSaveConfig('filtros',           filtros)
   ]).then(function() {
     setSyncStatus('ok');
-    var el = document.getElementById('gas-url-status');
-    if (el) { el.style.color='#3a8c50'; el.textContent='✓ Todos os dados enviados ao Sheets com sucesso.'; }
+    sbShowConfigStatus('✓ Todos os dados enviados com sucesso.', '#3a8c50');
   }).catch(function(e) {
     setSyncStatus('err');
-    var el = document.getElementById('gas-url-status');
-    if (el) { el.style.color='var(--red)'; el.textContent='Erro: ' + e.message; }
+    sbShowConfigStatus('✗ Erro: ' + e.message, 'var(--red)');
   });
 }
 
-// ── URL management ────────────────────────────────────────────
-function gasSaveUrl() {
-  var el = document.getElementById('gas-url-input');
-  if (!el) return;
-  var url = el.value.trim();
-  GAS_URL = url;
-  try { localStorage.setItem('fin_gas_url', url); } catch(e) {}
-  var st = document.getElementById('gas-url-status');
-  if (!url) {
-    setSyncStatus('off');
-    if (st) { st.style.color='var(--ink3)'; st.textContent='Integração desativada.'; }
-    return;
-  }
-  if (st) { st.style.color='var(--ink3)'; st.textContent='URL salva. Clique em "Testar conexão".'; }
+// ── Upload bases after Excel parse ───────────────────────────
+function sbUploadBasesAfterParse() {
+  var sb = getSB(); if (!sb || _sbUploadInProgress) return;
+  _sbUploadInProgress = true;
+  setSyncStatus('busy', 'Enviando bases…');
+  sbShowConfigStatus('⏳ Enviando Contas a Pagar…', 'var(--ink3)');
+  sbUploadBase('base_pagar', RAW_PAGAR, function(done, total) {
+    sbShowConfigStatus('⏳ Pagar: ' + done + '/' + total + '…', 'var(--ink3)');
+  }).then(function() {
+    sbShowConfigStatus('⏳ Enviando Contas a Receber…', 'var(--ink3)');
+    return sbUploadBase('base_receber', RAW_RECEBER, function(done, total) {
+      sbShowConfigStatus('⏳ Receber: ' + done + '/' + total + '…', 'var(--ink3)');
+    });
+  }).then(function() {
+    _sbUploadInProgress = false;
+    setSyncStatus('ok');
+    sbShowConfigStatus('✓ Bases enviadas! Todos do time verão a base atualizada.', '#3a8c50');
+  }).catch(function(e) {
+    _sbUploadInProgress = false;
+    setSyncStatus('err');
+    sbShowConfigStatus('✗ Erro ao enviar bases: ' + e.message, 'var(--red)');
+  });
+}
+
+function sbShowConfigStatus(msg, color) {
+  var el = document.getElementById('gas-url-status');
+  if (el) { el.style.color = color || 'var(--ink3)'; el.textContent = msg; }
 }
 
 function gasTestConnection() {
-  var url = getGASUrl();
-  var st = document.getElementById('gas-url-status');
-  if (!url) {
-    if (st) { st.style.color='var(--red)'; st.textContent='Nenhuma URL configurada.'; }
+  var sb = getSB();
+  if (!sb) {
+    sbShowConfigStatus('✗ Supabase não disponível. Verifique a conexão com a internet.', 'var(--red)');
     return;
   }
   setSyncStatus('busy', 'Testando…');
-  if (st) { st.style.color='var(--ink3)'; st.textContent='Testando conexão…'; }
-  gasGet('ping').then(function() {
-    setSyncStatus('ok');
-    if (st) { st.style.color='#3a8c50'; st.textContent='✓ Conexão OK! Sheets respondendo.'; }
-  }).catch(function(e) {
-    setSyncStatus('err');
-    if (st) { st.style.color='var(--red)'; st.textContent='✗ Falhou: ' + e.message + '. Verifique a URL e as permissões.'; }
-  });
+  sbShowConfigStatus('Testando conexão…', 'var(--ink3)');
+  sb.from('config').select('chave').limit(1)
+    .then(function(res) {
+      if (res.error) throw res.error;
+      setSyncStatus('ok');
+      sbShowConfigStatus('✓ Conexão OK! Supabase respondendo.', '#3a8c50');
+      _sbOnline = true;
+    }).catch(function(e) {
+      setSyncStatus('err');
+      sbShowConfigStatus('✗ Falhou: ' + e.message, 'var(--red)');
+    });
 }
 
-// ── renderConfigPage: populate GAS URL field ─────────────────
-// (called when opening Configurações)
+// ── renderConfigPage ─────────────────────────────────────────
 
 // Init assíncrono — aguarda dados externos
 loadAllData().then(() => {
