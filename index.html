@@ -5249,13 +5249,21 @@ function gasLoadAll() {
     if (basePagar && basePagar.length) {
       RAW_PAGAR = basePagar;
       INITIAL_PAGAR = basePagar.map(function(r){ return Object.assign({},r); });
+      curNameP = 'Supabase (' + basePagar.length + ' títulos)';
+      var cnp=document.getElementById('cur-name-pagar'); if(cnp) cnp.textContent=curNameP;
+      var cmp=document.getElementById('cur-meta-pagar'); if(cmp) cmp.textContent=basePagar.length+' títulos | via Supabase';
       initFiltersFromData();
       updateAll();
     }
     if (baseReceber && baseReceber.length) {
       RAW_RECEBER = baseReceber;
       INITIAL_RECEBER = baseReceber.map(function(r){ return Object.assign({},r); });
+      curNameR = 'Supabase (' + baseReceber.length + ' títulos)';
+      var cnr=document.getElementById('cur-name-receber'); if(cnr) cnr.textContent=curNameR;
+      var cmr=document.getElementById('cur-meta-receber'); if(cmr) cmr.textContent=baseReceber.length+' títulos | via Supabase';
     }
+    var nc=document.getElementById('nav-count');
+    if(nc) nc.textContent=RAW_PAGAR.length+' + '+RAW_RECEBER.length+' títulos';
     _sbOnline = true;
     setSyncStatus('ok');
     renderEstrategicosPanel();
