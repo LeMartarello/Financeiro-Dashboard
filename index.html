@@ -933,6 +933,7 @@ th.dd-sortable:not(.sort-asc):not(.sort-desc) .sort-icon::after{content:'⇅';}
         <div style="font-size:11px;color:var(--ink3);margin-top:2px" id="dd-date-lbl">Títulos vencidos e vencendo hoje</div>
       </div>
       <div style="display:flex;gap:8px">
+        <button class="btn btn-secondary btn-sm" onclick="gasSyncAndRefresh()" title="Buscar dados mais recentes do Sheets">🔄 Sincronizar</button>
         <button class="btn btn-secondary btn-sm" onclick="ddExportJSON()">💾 Salvar decisões</button>
         <button class="btn btn-secondary btn-sm" onclick="document.getElementById('dd-import-file').click()">📂 Restaurar</button>
         <input type="file" id="dd-import-file" accept=".json" style="display:none" onchange="ddImportJSON(this)">
@@ -5145,6 +5146,17 @@ function gasSaveDebounced(type, data) {
   }, 1200);
 }
 
+// ── Sync from Sheets and refresh current view ────────────────
+function gasSyncAndRefresh() {
+  setSyncStatus('busy', 'Sincronizando…');
+  gasLoadAll().then(function() {
+    reconcileDecisions();
+    renderDecisaoDia();
+  }).catch(function() {
+    setSyncStatus('err', 'Falha ao sincronizar');
+  });
+}
+
 // ── Load ALL data from Sheets on startup ─────────────────────
 function gasLoadAll() {
   var url = getGASUrl();
@@ -5188,10 +5200,15 @@ function gasLoadAll() {
     }
     _gasOnline = true;
     setSyncStatus('ok');
-    // Re-render panels with fresh data
+    // Re-render ALL panels with fresh data from Sheets
     renderEstrategicosPanel();
     renderSincFornList();
     renderConfigPage();
+    // Re-render Decisão de Pagamento if it's currently visible
+    var ddPage = document.getElementById('page-decisao-dia');
+    if (ddPage && ddPage.classList.contains('active')) renderDecisaoDia();
+    // Always update cockpit in case DD state changed
+    if (typeof updateDDCockpit === 'function') updateDDCockpit();
   }).catch(function(e) {
     console.warn('[GAS] Load failed:', e);
     setSyncStatus('err', 'Sheets offline – usando cache');
