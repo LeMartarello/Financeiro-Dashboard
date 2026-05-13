@@ -5168,17 +5168,20 @@ function sbFetchAllRows(table) {
 }
 
 // ── Upload base to Supabase in batches ─────────────────────────
+var SB_COLS_PAGAR   = ['empresa','fornecedor','obra','documento','tipo_doc','titulo','plano_fin','data','semana','mes','ano','status','valor'];
+var SB_COLS_RECEBER = ['empresa','cliente','fornecedor','obra','documento','tipo_doc','titulo','data','semana','mes','ano','status','valor'];
+
 function sbUploadBase(table, rows, onProgress) {
   var sb = getSB(); if (!sb) return Promise.resolve();
   if (!rows || !rows.length) return Promise.resolve();
-  // Strip internal fields not in DB
+  var cols = table === 'base_pagar' ? SB_COLS_PAGAR : SB_COLS_RECEBER;
+  // Keep only columns that exist in the target table
   var clean = rows.map(function(r) {
-    var o = Object.assign({}, r);
-    delete o.id; delete o.carregado_em;
+    var o = {};
+    cols.forEach(function(c){ if (r[c] !== undefined) o[c] = r[c]; });
     return o;
   });
   var batchSize = 500;
-  var total = Math.ceil(clean.length / batchSize);
   var current = 0;
   // Delete existing data first
   return sb.from(table).delete().gte('id', 0)
