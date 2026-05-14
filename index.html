@@ -5222,7 +5222,11 @@ function gasLoadAll() {
 
     if (decisoes && typeof decisoes === 'object') {
       DD_STATE = decisoes;
-      try { localStorage.setItem('fin_decisao_v1_cache', JSON.stringify(decisoes)); } catch(e) {}
+      try {
+        var _ddTodayKey = 'fin_decisao_v1_' + new Date().toISOString().slice(0, 10);
+        localStorage.setItem('fin_decisao_v1_cache', JSON.stringify(decisoes));
+        localStorage.setItem(_ddTodayKey, JSON.stringify(decisoes));
+      } catch(e) {}
     }
     if (contas && Array.isArray(contas)) {
       try { localStorage.setItem('fin_contas_bancarias_v1', JSON.stringify(contas)); } catch(e) {}
