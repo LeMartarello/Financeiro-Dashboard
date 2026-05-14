@@ -678,11 +678,11 @@ th.dd-sortable:not(.sort-asc):not(.sort-desc) .sort-icon::after{content:'⇅';}
         <div style="display:flex;align-items:center;gap:16px">
           <label style="display:flex;align-items:center;gap:6px;font-size:11px;color:var(--ink3);font-family:'Roboto',sans-serif">
             Alerta abaixo de:
-            <input id="saldo-limiar" type="text" placeholder="R$ 0,00" style="width:120px;padding:4px 8px;border:1px solid var(--border);border-radius:var(--r);font-size:11px;color:#d4900a;font-weight:600;background:var(--surface);text-align:right;font-family:'DM Mono',monospace" oninput="onLimiarInput(this)">
+            <input id="saldo-limiar" type="text" placeholder="R$ 0,00" style="width:130px;padding:5px 10px;border:1.5px solid #e8a060;border-radius:var(--r);font-size:12px;color:#b87010;font-weight:700;background:#fffaf5;text-align:right;font-family:'DM Mono',monospace;outline:none;" onfocus="this.style.borderColor='#c87030';this.style.boxShadow='0 0 0 3px rgba(200,112,48,.15)'" onblur="this.style.borderColor='#e8a060';this.style.boxShadow='none'" oninput="onLimiarInput(this)">
           </label>
           <label style="display:flex;align-items:center;gap:6px;font-size:11px;color:var(--ink3);font-family:'Roboto',sans-serif">
             Saldo bancário inicial:
-            <input id="saldo-inicial" type="text" placeholder="R$ 0,00" style="width:130px;padding:4px 8px;border:1px solid var(--border);border-radius:var(--r);font-size:11px;color:var(--blue);font-weight:600;background:var(--surface);text-align:right;font-family:'DM Mono',monospace" oninput="onSaldoInput(this)">
+            <input id="saldo-inicial" type="text" placeholder="R$ 0,00" style="width:145px;padding:5px 10px;border:1.5px solid #7aabdd;border-radius:var(--r);font-size:12px;color:#1a4fa0;font-weight:700;background:#f0f6ff;text-align:right;font-family:'DM Mono',monospace;outline:none;" onfocus="this.style.borderColor='#3b6cb7';this.style.boxShadow='0 0 0 3px rgba(59,108,183,.15)'" onblur="this.style.borderColor='#7aabdd';this.style.boxShadow='none'" oninput="onSaldoInput(this)">
           </label>
         </div>
       </div>
