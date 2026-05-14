@@ -3770,18 +3770,28 @@ function renderFluxo() {
 
 function onSaldoInput(el) {
   var raw = el.value.replace(/[^0-9]/g, '');
-  if (!raw) { el.value = ''; renderFluxo(); renderFluxo15(); return; }
+  if (!raw) { el.value = ''; renderFluxo(); renderFluxo15(); saveSaldoFluxo(); return; }
   var num = parseInt(raw, 10) / 100;
   el.value = 'R$ ' + num.toLocaleString('pt-BR', {minimumFractionDigits:2, maximumFractionDigits:2});
-  renderFluxo(); renderFluxo15();
+  renderFluxo(); renderFluxo15(); saveSaldoFluxo();
 }
 
 function onLimiarInput(el) {
   var raw = el.value.replace(/[^0-9]/g, '');
-  if (!raw) { el.value = ''; renderFluxo(); renderFluxo15(); _reRenderExt(); return; }
+  if (!raw) { el.value = ''; renderFluxo(); renderFluxo15(); _reRenderExt(); saveSaldoFluxo(); return; }
   var num = parseInt(raw, 10) / 100;
   el.value = 'R$ ' + num.toLocaleString('pt-BR', {minimumFractionDigits:2, maximumFractionDigits:2});
-  renderFluxo(); renderFluxo15(); _reRenderExt();
+  renderFluxo(); renderFluxo15(); _reRenderExt(); saveSaldoFluxo();
+}
+
+function saveSaldoFluxo() {
+  var si = document.getElementById('saldo-inicial');
+  var sl = document.getElementById('saldo-limiar');
+  var dados = {
+    inicial: si ? si.value : '',
+    limiar:  sl ? sl.value : ''
+  };
+  gasSaveDebounced('saldo_fluxo', dados);
 }
 
 function _reRenderExt() {
@@ -5214,11 +5224,12 @@ function gasLoadAll() {
     sbLoadConfig('sinc_estado'),
     sbLoadConfig('filtros'),
     sbFetchAllRows('base_pagar'),
-    sbFetchAllRows('base_receber')
+    sbFetchAllRows('base_receber'),
+    sbLoadConfig('saldo_fluxo')
   ]).then(function(results) {
     var decisoes=results[0], contas=results[1], estrateg=results[2],
         sincEmpr=results[3], sincEst=results[4], filtros=results[5],
-        basePagar=results[6], baseReceber=results[7];
+        basePagar=results[6], baseReceber=results[7], saldoFluxo=results[8];
 
     if (decisoes && typeof decisoes === 'object') {
       DD_STATE = decisoes;
@@ -5270,6 +5281,12 @@ function gasLoadAll() {
     if (_basesUpdated) {
       initFiltersFromData();
       updateAll();
+    }
+    if (saldoFluxo && typeof saldoFluxo === 'object') {
+      var si = document.getElementById('saldo-inicial');
+      var sl = document.getElementById('saldo-limiar');
+      if (si && saldoFluxo.inicial) { si.value = saldoFluxo.inicial; renderFluxo(); renderFluxo15(); }
+      if (sl && saldoFluxo.limiar)  { sl.value = saldoFluxo.limiar;  renderFluxo(); renderFluxo15(); _reRenderExt(); }
     }
     var nc=document.getElementById('nav-count');
     if(nc) nc.textContent=RAW_PAGAR.length+' + '+RAW_RECEBER.length+' títulos';
@@ -5327,13 +5344,17 @@ function gasForcePushAll() {
     filtros.auto_apr     = localStorage.getItem('fin_auto_apr') || '';
     filtros.profiles_apr = localStorage.getItem('fin_profiles_apr') || '';
   } catch(e) {}
+  var siEl = document.getElementById('saldo-inicial');
+  var slEl = document.getElementById('saldo-limiar');
+  var saldoFluxo = { inicial: siEl ? siEl.value : '', limiar: slEl ? slEl.value : '' };
   Promise.all([
     sbSaveConfig('decisoes',          DD_STATE),
     sbSaveConfig('contas_bancarias',  getCBList()),
     sbSaveConfig('estrategicos',      [...CRITICOS_SET]),
     sbSaveConfig('sinc_empreiteiros', [...SINC_SET]),
     sbSaveConfig('sinc_estado',       SINC_STATE),
-    sbSaveConfig('filtros',           filtros)
+    sbSaveConfig('filtros',           filtros),
+    sbSaveConfig('saldo_fluxo',       saldoFluxo)
   ]).then(function() {
     setSyncStatus('ok');
     sbShowConfigStatus('✓ Todos os dados enviados com sucesso.', '#3a8c50');
