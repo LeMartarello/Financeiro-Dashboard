@@ -4109,6 +4109,7 @@ function renderFluxo15Ext() {
 // ══════════════════════════════════════════════════════════════
 var DD_STATE = {};
 var DD_TODAY = '';
+var _ddFromSupabase = false; // flag: DD_STATE foi carregado do Supabase
 
 function ddGetPeriod() {
   var todayISO = new Date().toISOString().slice(0,10);
@@ -4188,6 +4189,8 @@ function getAllFutureReceivables() {
   });
 }
 function loadDDState() {
+  // Se já veio do Supabase, não sobrescreve com localStorage
+  if (_ddFromSupabase) return;
   try{var s=localStorage.getItem('fin_decisao_v1_'+DD_TODAY);DD_STATE=s?JSON.parse(s):{};}
   catch(e){DD_STATE={};}
 }
@@ -5233,6 +5236,7 @@ function gasLoadAll() {
 
     if (decisoes && typeof decisoes === 'object') {
       DD_STATE = decisoes;
+      _ddFromSupabase = true;
       try {
         var _ddTodayKey = 'fin_decisao_v1_' + new Date().toISOString().slice(0, 10);
         localStorage.setItem('fin_decisao_v1_cache', JSON.stringify(decisoes));
