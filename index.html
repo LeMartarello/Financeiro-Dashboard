@@ -983,6 +983,13 @@ th.dd-sortable:not(.sort-asc):not(.sort-desc) .sort-icon::after{content:'⇅';}
         <option value="__keep__">— manter banco atual —</option>
         <option value="__clear__">✕ Remover banco</option>
       </select>
+      <span style="color:var(--border2);margin:0 4px">|</span>
+      <span style="font-size:11px;color:var(--ink3)">Forma:</span>
+      <select class="dd-bulk-sel" id="dd-bulk-forma">
+        <option value="__keep__">— manter atual —</option>
+        <option value="lote">📦 Pago em Lote</option>
+        <option value="manual">✍ Manual</option>
+      </select>
       <button class="dd-bulk-btn" onclick="ddBulkApply()">Aplicar aos selecionados</button>
       <button class="dd-bulk-btn ghost" onclick="ddDeselectAll()" style="margin-left:4px">✕ Limpar seleção</button>
     </div>
@@ -999,6 +1006,7 @@ th.dd-sortable:not(.sort-asc):not(.sort-desc) .sort-icon::after{content:'⇅';}
           <th style="width:3%;text-align:center;padding:6px 4px">
             <input type="checkbox" class="dd-cb" id="dd-chk-all" title="Selecionar todos" onchange="ddToggleAll(this.checked)">
           </th>
+          <th class="dd-sortable" data-col="titulo" onclick="ddSetSort('titulo')" style="text-align:center;white-space:nowrap">Nº Título<span class="sort-icon"></span></th>
           <th class="dd-sortable" data-col="fornecedor" onclick="ddSetSort('fornecedor')">Fornecedor<span class="sort-icon"></span></th>
           <th class="dd-sortable" data-col="plano" onclick="ddSetSort('plano')">Plano Financeiro<span class="sort-icon"></span></th>
           <th class="dd-sortable" data-col="data" onclick="ddSetSort('data')">Vencimento<span class="sort-icon"></span></th>
@@ -1007,6 +1015,7 @@ th.dd-sortable:not(.sort-asc):not(.sort-desc) .sort-icon::after{content:'⇅';}
           <th class="dd-sortable" data-col="acao" onclick="ddSetSort('acao')">Ação<span class="sort-icon"></span></th>
           <th class="dd-sortable" data-col="novaData" onclick="ddSetSort('novaData')">Nova Data<span class="sort-icon"></span></th>
           <th class="dd-sortable" data-col="banco" onclick="ddSetSort('banco')">Banco<span class="sort-icon"></span></th>
+          <th class="dd-sortable" data-col="forma" onclick="ddSetSort('forma')" style="white-space:nowrap">Forma Pgto<span class="sort-icon"></span></th>
           <th style="width:9%">Observação</th>
         </tr></thead>
         <tbody id="dd-body"></tbody>
@@ -4424,6 +4433,8 @@ function ddSortTitles(titles, today) {
       var cB = stB.banco ? (getCBList().find(function(c){return c.id===stB.banco;})||{nome:''}) : {nome:''};
       va = cA.nome.toLowerCase(); vb = cB.nome.toLowerCase();
     }
+    else if (col === 'titulo') { va = parseInt(a.titulo||0,10); vb = parseInt(b.titulo||0,10); }
+    else if (col === 'forma') { va = stA.forma||'lote'; vb = stB.forma||'lote'; }
     else { va = 0; vb = 0; }
     var cmp = va < vb ? -1 : va > vb ? 1 : 0;
     return dir === 'asc' ? cmp : -cmp;
@@ -4468,8 +4479,8 @@ function renderDecisaoDia() {
   if(empty) empty.style.display='none';
   titles.forEach(function(r){
     var k=ddKey(r);
-    var st=DD_STATE[k]||{acao:'pagar',novaData:'',obs:'',banco:''};
-    if(!DD_STATE[k]){DD_STATE[k]={acao:'pagar',novaData:'',obs:'',banco:''};}
+    var st=DD_STATE[k]||{acao:'pagar',novaData:'',obs:'',banco:'',forma:'lote'};
+    if(!DD_STATE[k]){DD_STATE[k]={acao:'pagar',novaData:'',obs:'',banco:'',forma:'lote'};}
     var isCrit=isCritico(r.fornecedor);
     var tDate=new Date(r.data+'T00:00:00');
     var diffDays=Math.round((today-tDate)/86400000);
@@ -4487,20 +4498,21 @@ function renderDecisaoDia() {
     tr.dataset.doc=r.documento||'';
     tr.dataset.valor=Math.abs(r.valor).toString();
     applyDDRowStyle(tr,st.acao);
-    // Cols: 0=cb, 1=forn, 2=plano, 3=venc, 4=atraso, 5=valor, 6=ação, 7=nova data, 8=banco, 9=obs
+    // Cols: 0=cb, 1=titulo, 2=forn, 3=plano, 4=venc, 5=atraso, 6=valor, 7=ação, 8=nova data, 9=banco, 10=forma, 11=obs
     tr.innerHTML='<td style="text-align:center;padding:4px 2px"></td>'
+      +'<td style="text-align:center;font-family:DM Mono,monospace;font-size:11px;color:var(--ink2);white-space:nowrap">'+(r.titulo||'—')+'</td>'
       +'<td title="'+r.fornecedor+'">'+(isCrit?'<span class="badge-critico">⭐</span> ':'')+trunc(r.fornecedor,22)+'</td>'
       +'<td title="'+(r.plano_fin||'')+'" style="font-size:11px;color:var(--ink2)">'+trunc(r.plano_fin||'—',20)+'</td>'
       +'<td style="font-family:DM Mono,monospace;font-size:11px;white-space:nowrap">'+fmtDate(r.data)+'</td>'
       +'<td style="text-align:center">'+atrasoBadge+'</td>'
       +'<td class="tr" style="color:var(--red);font-weight:600">'+fmtNeg(r.valor)+'</td>'
-      +'<td></td><td></td><td></td><td></td>';
+      +'<td></td><td></td><td></td><td></td><td></td>';
     // Checkbox
     var cb=document.createElement('input');cb.type='checkbox';cb.className='dd-cb';
     cb.dataset.key=k;
     cb.addEventListener('change',function(){ddUpdateBulkBar();});
     tr.querySelectorAll('td')[0].appendChild(cb);
-    // Action select
+    // Action select — td[7]
     var sel=document.createElement('select');sel.className='dd-action-select';
     [['pagar','✓ Pagar hoje'],['','— Pendente —'],['atrasar','↷ Atrasar'],['negociar','✎ Negociar']].forEach(function(o){
       var opt=document.createElement('option');opt.value=o[0];opt.textContent=o[1];
@@ -4509,28 +4521,36 @@ function renderDecisaoDia() {
     sel.addEventListener('change',(function(k_,tr_){return function(){
       DD_STATE[k_]=DD_STATE[k_]||{};DD_STATE[k_].acao=this.value;
       applyDDRowStyle(tr_,this.value);
-      var nd=tr_.querySelectorAll('td')[7].querySelector('.dd-nova-data');
+      var nd=tr_.querySelectorAll('td')[8].querySelector('.dd-nova-data');
       if(nd)nd.style.display=(this.value==='atrasar'||this.value==='negociar')?'':'none';
       saveDDState();updateDDCockpit();
     };})(k,tr));
-    tr.querySelectorAll('td')[6].appendChild(sel);
-    // Nova data
+    tr.querySelectorAll('td')[7].appendChild(sel);
+    // Nova data — td[8]
     var nd=document.createElement('input');nd.type='date';nd.className='dd-nova-data';nd.value=st.novaData||'';
     nd.style.display=(st.acao==='atrasar'||st.acao==='negociar')?'':'none';
     nd.addEventListener('change',(function(k_){return function(){DD_STATE[k_]=DD_STATE[k_]||{};DD_STATE[k_].novaData=this.value;saveDDState();};})(k));
-    tr.querySelectorAll('td')[7].appendChild(nd);
-    // Banco select
+    tr.querySelectorAll('td')[8].appendChild(nd);
+    // Banco select — td[9]
     var bsel=document.createElement('select');bsel.className='dd-banco-sel';
     var bancosOpts='<option value="">— banco —</option>';
     getCBList().forEach(function(c){bancosOpts+='<option value="'+c.id+'">'+c.nome+'</option>';});
     bsel.innerHTML=bancosOpts;
-    bsel.value=st.banco||''; // set explicitly — more reliable than 'selected' in innerHTML string
+    bsel.value=st.banco||'';
     bsel.addEventListener('change',(function(k_){return function(){DD_STATE[k_]=DD_STATE[k_]||{};DD_STATE[k_].banco=this.value;saveDDState();updateDDCockpit();};})(k));
-    tr.querySelectorAll('td')[8].appendChild(bsel);
-    // Obs
+    tr.querySelectorAll('td')[9].appendChild(bsel);
+    // Forma de pagamento — td[10]
+    var fsel=document.createElement('select');fsel.className='dd-banco-sel';
+    [['lote','📦 Pago em Lote'],['manual','✍ Manual']].forEach(function(o){
+      var opt=document.createElement('option');opt.value=o[0];opt.textContent=o[1];
+      if((st.forma||'lote')===o[0])opt.selected=true;fsel.appendChild(opt);
+    });
+    fsel.addEventListener('change',(function(k_){return function(){DD_STATE[k_]=DD_STATE[k_]||{};DD_STATE[k_].forma=this.value;saveDDState();};})(k));
+    tr.querySelectorAll('td')[10].appendChild(fsel);
+    // Obs — td[11]
     var obs=document.createElement('input');obs.type='text';obs.className='dd-obs-input';obs.placeholder='Observação...';obs.value=st.obs||'';
     obs.addEventListener('change',(function(k_){return function(){DD_STATE[k_]=DD_STATE[k_]||{};DD_STATE[k_].obs=this.value;saveDDState();};})(k));
-    tr.querySelectorAll('td')[9].appendChild(obs);
+    tr.querySelectorAll('td')[11].appendChild(obs);
     tbody.appendChild(tr);
   });
   updateDDCockpit();
@@ -4562,12 +4582,13 @@ function ddImportJSON(input) {
 function ddExportExcel() {
   var titles=getDDTitles();if(!titles.length){alert('Nenhum título para exportar.');return;}
   var today=new Date();today.setHours(0,0,0,0);
-  var headers=['Fornecedor','Plano Financeiro','Empresa','Documento','Tipo','Vencimento','Atraso (dias)','Valor (R$)','Ação','Nova Data','Banco','Observação'];
+  var headers=['Nº Título','Fornecedor','Plano Financeiro','Empresa','Documento','Tipo','Vencimento','Atraso (dias)','Valor (R$)','Ação','Nova Data','Banco','Forma Pgto','Observação'];
   var rows=titles.map(function(r){
     var k=ddKey(r),st=DD_STATE[k]||{};
     var diff=Math.round((today-new Date(r.data+'T00:00:00'))/86400000);
     var conta=st.banco?getCBList().find(function(c){return c.id===st.banco;}):null;
-    return [r.fornecedor,r.plano_fin||'',r.empresa,r.documento,r.tipo_doc,fmtDate(r.data),diff,Math.abs(r.valor),st.acao||'Pagar hoje',st.novaData||'',conta?conta.nome:'',st.obs||''];
+    var formaLabel=(st.forma||'lote')==='manual'?'Manual':'Pago em Lote';
+    return [r.titulo||'',r.fornecedor,r.plano_fin||'',r.empresa,r.documento,r.tipo_doc,fmtDate(r.data),diff,Math.abs(r.valor),st.acao||'Pagar hoje',st.novaData||'',conta?conta.nome:'',formaLabel,st.obs||''];
   });
   var wb=XLSX.utils.book_new();
   var ws=XLSX.utils.aoa_to_sheet([headers,...rows]);
@@ -5086,6 +5107,7 @@ function ddBulkApply(){
   var acao=document.getElementById('dd-bulk-acao').value;
   var banco=document.getElementById('dd-bulk-banco').value;
   var novaData=document.getElementById('dd-bulk-nova-data').value;
+  var forma=document.getElementById('dd-bulk-forma').value;
   keys.forEach(function(k){
     DD_STATE[k]=DD_STATE[k]||{};
     DD_STATE[k].acao=acao;
@@ -5094,6 +5116,7 @@ function ddBulkApply(){
     }
     if(banco==='__clear__') DD_STATE[k].banco='';
     else if(banco!=='__keep__') DD_STATE[k].banco=banco;
+    if(forma!=='__keep__') DD_STATE[k].forma=forma;
   });
   saveDDState();
   // Re-render preserving the current selection
@@ -5314,7 +5337,7 @@ function reconcileDecisions() {
   if (!RAW_PAGAR || !RAW_PAGAR.length) return;
   RAW_PAGAR.forEach(function(r) {
     var k = ddKey(r);
-    if (!DD_STATE[k]) DD_STATE[k] = {acao:'pagar', novaData:'', obs:'', banco:''};
+    if (!DD_STATE[k]) DD_STATE[k] = {acao:'pagar', novaData:'', obs:'', banco:'', forma:'lote'};
   });
 }
 
