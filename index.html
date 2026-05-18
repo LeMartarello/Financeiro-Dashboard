@@ -1162,6 +1162,10 @@ th.dd-sortable:not(.sort-asc):not(.sort-desc) .sort-icon::after{content:'⇅';}
           <option value="1">✓ Sim</option>
           <option value="0">✕ Não</option>
         </select>
+        <span style="color:var(--border2);margin:0 4px">|</span>
+        <span style="font-size:11px;color:var(--ink3)">Venc. Efetivo:</span>
+        <input type="date" id="sinc-bulk-venc-efetivo" class="dd-date-inp" title="Deixe em branco para manter a data atual">
+        <button class="dd-bulk-btn ghost" onclick="document.getElementById('sinc-bulk-venc-efetivo').value=''" style="padding:3px 7px;margin-left:-2px" title="Limpar data">✕</button>
         <button class="dd-bulk-btn" onclick="sincBulkApply()">Aplicar aos selecionados</button>
         <button class="dd-bulk-btn ghost" onclick="sincDeselectAll()" style="margin-left:4px">✕ Limpar seleção</button>
       </div>
@@ -5067,17 +5071,18 @@ function sincBulkApply(){
   if(!keys.length) return;
   var nasinc=document.getElementById('sinc-bulk-nasinc').value;
   var ant=document.getElementById('sinc-bulk-antecipou').value;
+  var vencEf=(document.getElementById('sinc-bulk-venc-efetivo')||{value:''}).value;
   keys.forEach(function(k){
     SINC_STATE[k]=SINC_STATE[k]||{};
     if(nasinc!=='__keep__'){
       SINC_STATE[k].na_sinc=nasinc==='1';
-      if(nasinc==='0') SINC_STATE[k].antecipou=false; // reset antecipou ao tirar da SINC
+      if(nasinc==='0') SINC_STATE[k].antecipou=false;
     }
     if(ant!=='__keep__'){
-      // Antecipou só pode ser true se na_sinc for true
-      var naS = nasinc==='__keep__' ? !!SINC_STATE[k].na_sinc : nasinc==='1';
-      SINC_STATE[k].antecipou = naS && ant==='1';
+      var naS=nasinc==='__keep__'?!!SINC_STATE[k].na_sinc:nasinc==='1';
+      SINC_STATE[k].antecipou=naS&&ant==='1';
     }
+    if(vencEf!=='') SINC_STATE[k].vencEfetivo=vencEf; // só aplica se a data foi preenchida
   });
   saveSincState();
   var keySet=new Set(keys);
