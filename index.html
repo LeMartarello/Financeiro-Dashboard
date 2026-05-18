@@ -1139,15 +1139,22 @@ th.dd-sortable:not(.sort-asc):not(.sort-desc) .sort-icon::after{content:'⇅';}
 
     <!-- Table -->
     <div class="panel-card" style="overflow-x:auto">
-      <table id="sinc-table" style="min-width:980px">
+      <!-- Filtro -->
+      <div class="dd-search-bar" style="padding:10px 10px 0">
+        <input class="dd-search-inp" id="sinc-search" placeholder="🔍  Filtrar por empreiteiro, nº título ou valor..." oninput="renderSincTable()">
+        <button class="dd-bulk-btn ghost" onclick="document.getElementById('sinc-search').value='';renderSincTable()" title="Limpar" style="padding:4px 10px">✕</button>
+        <span class="dd-search-count" id="sinc-search-count"></span>
+      </div>
+      <table id="sinc-table" style="min-width:1060px;margin-top:6px">
         <thead><tr>
-          <th style="width:22%">Empreiteiro</th>
-          <th style="width:18%">Plano Financeiro</th>
-          <th style="width:8%">Venc. Original</th>
-          <th class="tr" style="width:10%">Valor</th>
-          <th style="width:8%;text-align:center">Na SINC</th>
-          <th style="width:8%;text-align:center">Antecipou</th>
-          <th style="width:10%">Venc. Efetivo</th>
+          <th class="dd-sortable" onclick="sincSetSort('titulo')" style="width:7%;text-align:center;white-space:nowrap" id="sinc-th-titulo">Nº Título<span class="sort-icon"></span></th>
+          <th class="dd-sortable" onclick="sincSetSort('fornecedor')" style="width:20%" id="sinc-th-fornecedor">Empreiteiro<span class="sort-icon"></span></th>
+          <th class="dd-sortable" onclick="sincSetSort('plano')" style="width:16%" id="sinc-th-plano">Plano Financeiro<span class="sort-icon"></span></th>
+          <th class="dd-sortable" onclick="sincSetSort('data')" style="width:8%" id="sinc-th-data">Venc. Original<span class="sort-icon"></span></th>
+          <th class="dd-sortable tr" onclick="sincSetSort('valor')" style="width:9%" id="sinc-th-valor">Valor<span class="sort-icon"></span></th>
+          <th class="dd-sortable" onclick="sincSetSort('na_sinc')" style="width:7%;text-align:center" id="sinc-th-na_sinc">Na SINC<span class="sort-icon"></span></th>
+          <th class="dd-sortable" onclick="sincSetSort('antecipou')" style="width:8%;text-align:center" id="sinc-th-antecipou">Antecipou<span class="sort-icon"></span></th>
+          <th class="dd-sortable" onclick="sincSetSort('vencEfetivo')" style="width:9%" id="sinc-th-vencEfetivo">Venc. Efetivo<span class="sort-icon"></span></th>
           <th style="width:16%">Observação</th>
         </tr></thead>
         <tbody id="sinc-body"></tbody>
@@ -4740,6 +4747,13 @@ function ddExportPDF() {
 // ══════════════════════════════════════════════════════════════
 var SINC_SET   = new Set(); // empreiteiros marcados como SINC
 var SINC_STATE = {};         // {sincKey: {na_sinc, antecipou, obs}}
+var SINC_SORT  = {col:'fornecedor', dir:'asc'};
+
+function sincSetSort(col){
+  if(SINC_SORT.col===col){ SINC_SORT.dir=SINC_SORT.dir==='asc'?'desc':'asc'; }
+  else { SINC_SORT.col=col; SINC_SORT.dir=(col==='valor')?'desc':'asc'; }
+  renderSincTable();
+}
 
 function sincKey(r){ return [r.empresa||'',r.fornecedor||'',r.documento||'',r.data||''].join('||'); }
 
@@ -4867,13 +4881,52 @@ function renderSincTable(){
   _s('sinc-k-alt',kAlt);     _s('sinc-k-alt-v',fmtPos(kAltV));
   _s('sinc-k-fora',kFora);   _s('sinc-k-fora-v',fmtPos(kForaV));
 
+  // Filtro de busca
+  var q=(document.getElementById('sinc-search')||{value:''}).value.trim().toLowerCase();
+  if(q){
+    titles=titles.filter(function(r){
+      var tit=String(r.titulo||'');
+      var val=String(Math.abs(r.valor||0));
+      return (r.fornecedor||'').toLowerCase().includes(q)
+          || tit.toLowerCase().includes(q)
+          || val.includes(q);
+    });
+  }
+  var sc=document.getElementById('sinc-search-count');
+  if(sc) sc.textContent=titles.length+' título'+(titles.length!==1?'s':'');
+
   // Table
   tbody.innerHTML='';
   if(!titles.length){ if(empty) empty.style.display='block'; return; }
   if(empty) empty.style.display='none';
 
-  titles.sort(function(a,b){ return a.fornecedor.localeCompare(b.fornecedor,'pt-BR')||a.data.localeCompare(b.data); });
+  // Sort
+  titles=titles.slice().sort(function(a,b){
+    var stA=SINC_STATE[sincKey(a)]||{}, stB=SINC_STATE[sincKey(b)]||{};
+    var veA=(stA.na_sinc&&stA.antecipou)?sincAddDays(a.data,14):a.data;
+    var veB=(stB.na_sinc&&stB.antecipou)?sincAddDays(b.data,14):b.data;
+    var va, vb, col=SINC_SORT.col;
+    if(col==='titulo')       { va=parseInt(a.titulo||0,10);              vb=parseInt(b.titulo||0,10); }
+    else if(col==='fornecedor'){ va=(a.fornecedor||'').toLowerCase();    vb=(b.fornecedor||'').toLowerCase(); }
+    else if(col==='plano')   { va=(a.plano_fin||'').toLowerCase();       vb=(b.plano_fin||'').toLowerCase(); }
+    else if(col==='data')    { va=a.data||'';                            vb=b.data||''; }
+    else if(col==='valor')   { va=Math.abs(a.valor);                     vb=Math.abs(b.valor); }
+    else if(col==='na_sinc') { va=stA.na_sinc?1:0;                       vb=stB.na_sinc?1:0; }
+    else if(col==='antecipou'){ va=stA.antecipou?1:0;                    vb=stB.antecipou?1:0; }
+    else if(col==='vencEfetivo'){ va=veA;                                vb=veB; }
+    else { va=0; vb=0; }
+    var cmp=va<vb?-1:va>vb?1:0;
+    return SINC_SORT.dir==='asc'?cmp:-cmp;
+  });
 
+  // Update sort indicators on headers
+  ['titulo','fornecedor','plano','data','valor','na_sinc','antecipou','vencEfetivo'].forEach(function(c){
+    var th=document.getElementById('sinc-th-'+c); if(!th) return;
+    th.classList.remove('sort-asc','sort-desc');
+    if(SINC_SORT.col===c) th.classList.add('sort-'+SINC_SORT.dir);
+  });
+
+  // Cols: 0=titulo, 1=forn, 2=plano, 3=data, 4=valor, 5=na_sinc, 6=antecipou, 7=vencEfetivo, 8=obs
   titles.forEach(function(r){
     var k=sincKey(r);
     var st=SINC_STATE[k]||{na_sinc:false,antecipou:false,obs:''};
@@ -4884,41 +4937,42 @@ function renderSincTable(){
     if(st.na_sinc&&st.antecipou) tr.style.background='#eff4fc';
     else if(st.na_sinc) tr.style.background='#f0fdf4';
 
-    tr.innerHTML='<td title="'+r.fornecedor+'" style="font-size:12px">'+trunc(r.fornecedor,26)+'</td>'
+    tr.innerHTML='<td style="text-align:center;font-family:DM Mono,monospace;font-size:11px;color:var(--ink2);white-space:nowrap">'+(r.titulo||'—')+'</td>'
+      +'<td title="'+r.fornecedor+'" style="font-size:12px">'+trunc(r.fornecedor,26)+'</td>'
       +'<td title="'+(r.plano_fin||'')+'" style="font-size:11px;color:var(--ink2)">'+trunc(r.plano_fin||'—',22)+'</td>'
       +'<td style="font-family:DM Mono,monospace;font-size:11px;white-space:nowrap">'+fmtDate(r.data)+'</td>'
       +'<td class="tr" style="color:var(--red);font-weight:600">'+fmtNeg(r.valor)+'</td>'
-      +'<td style="text-align:center"></td>'  // Na SINC
-      +'<td style="text-align:center"></td>'  // Antecipou
+      +'<td style="text-align:center"></td>'  // Na SINC — td[5]
+      +'<td style="text-align:center"></td>'  // Antecipou — td[6]
       +'<td style="font-family:DM Mono,monospace;font-size:11px;white-space:nowrap;'+(antecipouChanged?'color:#1e40af;font-weight:700':'')+'">'+fmtDate(vencEfetivo)+(antecipouChanged?' <span style="font-size:9px;color:#1e40af">(+14d)</span>':'')+'</td>'
-      +'<td></td>';
+      +'<td></td>';  // obs — td[8]
 
-    // Na SINC checkbox
+    // Na SINC checkbox — td[5]
     var cbSinc=document.createElement('input');cbSinc.type='checkbox';cbSinc.className='sinc-cb';cbSinc.checked=!!st.na_sinc;
-    cbSinc.addEventListener('change',(function(k_,tr_,r_){return function(){
+    cbSinc.addEventListener('change',(function(k_){return function(){
       SINC_STATE[k_]=SINC_STATE[k_]||{};
       SINC_STATE[k_].na_sinc=this.checked;
-      if(!this.checked) SINC_STATE[k_].antecipou=false; // reset antecipou se sair da SINC
+      if(!this.checked) SINC_STATE[k_].antecipou=false;
       saveSincState();renderSincTable();
-    };})(k,tr,r));
-    tr.querySelectorAll('td')[4].appendChild(cbSinc);
+    };})(k));
+    tr.querySelectorAll('td')[5].appendChild(cbSinc);
 
-    // Antecipou checkbox — só habilitado se Na SINC
+    // Antecipou checkbox — td[6]
     var cbAnt=document.createElement('input');cbAnt.type='checkbox';cbAnt.className='sinc-cb';cbAnt.checked=!!st.antecipou;cbAnt.disabled=!st.na_sinc;
     cbAnt.style.opacity=st.na_sinc?'1':'0.3';
     cbAnt.addEventListener('change',(function(k_){return function(){
       SINC_STATE[k_]=SINC_STATE[k_]||{};SINC_STATE[k_].antecipou=this.checked;
       saveSincState();renderSincTable();
     };})(k));
-    tr.querySelectorAll('td')[5].appendChild(cbAnt);
+    tr.querySelectorAll('td')[6].appendChild(cbAnt);
 
-    // Obs
+    // Obs — td[8]
     var obs=document.createElement('input');obs.type='text';obs.className='dd-obs-input';
     obs.placeholder='Observação...';obs.value=st.obs||'';
     obs.addEventListener('change',(function(k_){return function(){
       SINC_STATE[k_]=SINC_STATE[k_]||{};SINC_STATE[k_].obs=this.value;saveSincState();
     };})(k));
-    tr.querySelectorAll('td')[7].appendChild(obs);
+    tr.querySelectorAll('td')[8].appendChild(obs);
     tbody.appendChild(tr);
   });
 }
@@ -4932,11 +4986,11 @@ function renderSincPage(){
 function sincExportExcel(){
   var titles=getSincTitles();
   if(!titles.length){ alert('Nenhum título para exportar.'); return; }
-  var headers=['Empreiteiro','Plano Financeiro','Empresa','Documento','Tipo','Venc. Original','Valor (R$)','Na SINC','Antecipou','Venc. Efetivo','Observação'];
+  var headers=['Nº Título','Empreiteiro','Plano Financeiro','Empresa','Documento','Tipo','Venc. Original','Valor (R$)','Na SINC','Antecipou','Venc. Efetivo','Observação'];
   var rows=titles.map(function(r){
     var k=sincKey(r),st=SINC_STATE[k]||{};
     var vef=(st.na_sinc&&st.antecipou)?sincAddDays(r.data,14):r.data;
-    return [r.fornecedor,r.plano_fin||'',r.empresa,r.documento,r.tipo_doc,fmtDate(r.data),Math.abs(r.valor),st.na_sinc?'Sim':'Não',st.antecipou?'Sim':'Não',fmtDate(vef),st.obs||''];
+    return [r.titulo||'',r.fornecedor,r.plano_fin||'',r.empresa,r.documento,r.tipo_doc,fmtDate(r.data),Math.abs(r.valor),st.na_sinc?'Sim':'Não',st.antecipou?'Sim':'Não',fmtDate(vef),st.obs||''];
   });
   var wb=XLSX.utils.book_new();
   var ws=XLSX.utils.aoa_to_sheet([headers,...rows]);
