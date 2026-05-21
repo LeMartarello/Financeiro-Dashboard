@@ -5685,7 +5685,11 @@ function siengeSyncRun(debug) {
   if (endDate)   body.endDate   = endDate;
   fetch(fnUrl, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: {
+      'Content-Type': 'application/json',
+      'apikey': SB_KEY,          // anon key — necessário para o Supabase aceitar a requisição
+      'Authorization': 'Bearer ' + SB_KEY
+    },
     body: JSON.stringify(body)
   })
   .then(function(res) { return res.json(); })
