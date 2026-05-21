@@ -1220,6 +1220,43 @@ th.dd-sortable:not(.sort-asc):not(.sort-desc) .sort-icon::after{content:'⇅';}
       </div>
     </div>
 
+    <!-- Integração Sienge -->
+    <div style="font-size:13px;font-weight:600;color:var(--ink);margin-bottom:10px;font-family:'DM Serif Display',serif">🏗 Integração Sienge</div>
+    <div class="panel-card" style="margin-bottom:16px">
+      <div style="font-size:11px;color:var(--ink3);margin-bottom:10px">
+        Busca Contas a Pagar e a Receber diretamente do Sienge via API e atualiza o Supabase automaticamente.<br>
+        Requer a <strong>Supabase Edge Function</strong> implantada com suas credenciais Sienge configuradas.
+      </div>
+      <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-bottom:10px">
+        <span style="font-size:11px;color:var(--ink2);white-space:nowrap">URL da Edge Function:</span>
+        <input id="sienge-fn-url" type="text"
+          placeholder="https://xxxx.supabase.co/functions/v1/sienge-sync"
+          style="flex:1;min-width:260px;padding:5px 9px;border:1px solid var(--border);border-radius:var(--r);font-size:11px;font-family:'DM Mono',monospace"
+          oninput="try{localStorage.setItem('sienge_fn_url',this.value)}catch(e){}">
+      </div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-bottom:6px">
+        <select id="sienge-tipo" class="pf-select" style="font-size:11px;padding:5px 8px">
+          <option value="ambos">Pagar + Receber</option>
+          <option value="pagar">Só Contas a Pagar</option>
+          <option value="receber">Só Contas a Receber</option>
+        </select>
+        <input id="sienge-start" type="date" class="pf-select" title="Data início (vencimento)"
+          style="font-size:11px;font-family:'DM Mono',monospace">
+        <input id="sienge-end" type="date" class="pf-select" title="Data fim (vencimento)"
+          style="font-size:11px;font-family:'DM Mono',monospace">
+        <button class="btn btn-primary btn-sm" onclick="siengeSyncRun(false)">🔄 Atualizar do Sienge</button>
+        <button class="btn btn-secondary btn-sm" onclick="siengeSyncRun(true)" title="Mostra os campos retornados pelo Sienge sem salvar nada — útil para verificar o mapeamento de campos">🔍 Testar (debug)</button>
+      </div>
+      <div id="sienge-log" style="font-size:11px;min-height:18px;color:var(--ink3);line-height:1.8;white-space:pre-wrap"></div>
+      <div style="margin-top:10px;padding:10px 14px;background:var(--surface2);border-radius:var(--r);font-size:11px;color:var(--ink3);line-height:1.8">
+        <strong style="color:var(--ink)">Antes de usar:</strong><br>
+        1. Confirme que seu contrato Sienge é <strong>Data Center (DC)</strong><br>
+        2. Crie um usuário de API no <strong>Portal de Integrações</strong> do Sienge<br>
+        3. Implante a Edge Function em <code style="background:#f0f0f0;padding:1px 4px;border-radius:3px">supabase/functions/sienge-sync/index.ts</code> com as 3 variáveis de ambiente<br>
+        4. Use o botão <em>🔍 Testar</em> para verificar os campos antes de sincronizar de verdade
+      </div>
+    </div>
+
     <!-- Contas Bancárias -->
     <div style="font-size:13px;font-weight:600;color:var(--ink);margin-bottom:10px;font-family:'DM Serif Display',serif">🏦 Contas Bancárias</div>
     <div class="panel-card" style="overflow-x:auto">
@@ -5145,6 +5182,7 @@ function saveCB(list){
 function getCBList(){ return loadCB(); }
 
 function renderConfigPage(){
+  siengeSyncInit();
   // Render bank accounts table
   var list=loadCB();
   var tbody=document.getElementById('cfg-contas-tbody');
@@ -5602,6 +5640,84 @@ function gasTestConnection() {
       setSyncStatus('err');
       sbShowConfigStatus('✗ Falhou: ' + e.message, 'var(--red)');
     });
+}
+
+// ── Integração Sienge via Edge Function ──────────────────────────────
+function siengeSyncLog(msg, color) {
+  var el = document.getElementById('sienge-log');
+  if (!el) return;
+  el.style.color = color || 'var(--ink3)';
+  el.textContent = msg;
+}
+
+// Inicializa URL salva e datas padrão ao abrir a página de config
+function siengeSyncInit() {
+  try {
+    var saved = localStorage.getItem('sienge_fn_url');
+    var inp = document.getElementById('sienge-fn-url');
+    if (inp && saved) inp.value = saved;
+  } catch(e) {}
+  // Datas padrão: início do ano até fim do próximo ano
+  var today = new Date();
+  var startInp = document.getElementById('sienge-start');
+  var endInp   = document.getElementById('sienge-end');
+  if (startInp && !startInp.value) startInp.value = today.getFullYear() + '-01-01';
+  if (endInp   && !endInp.value)   endInp.value   = (today.getFullYear() + 1) + '-12-31';
+}
+
+function siengeSyncRun(debug) {
+  var fnUrl = (document.getElementById('sienge-fn-url') || {value:''}).value.trim();
+  if (!fnUrl) {
+    siengeSyncLog('⚠ Informe a URL da Edge Function antes de continuar.', 'var(--red)');
+    return;
+  }
+  var tipo      = (document.getElementById('sienge-tipo')  || {value:'ambos'}).value;
+  var startDate = (document.getElementById('sienge-start') || {value:''}).value;
+  var endDate   = (document.getElementById('sienge-end')   || {value:''}).value;
+  var btn = document.querySelector('[onclick="siengeSyncRun(false)"]');
+  var btnDebug = document.querySelector('[onclick="siengeSyncRun(true)"]');
+  if (btn) btn.disabled = true;
+  if (btnDebug) btnDebug.disabled = true;
+  siengeSyncLog('⏳ Conectando ao Sienge…', 'var(--ink3)');
+  setSyncStatus('busy', 'Sienge…');
+  var body = { tipo: tipo, debug: !!debug };
+  if (startDate) body.startDate = startDate;
+  if (endDate)   body.endDate   = endDate;
+  fetch(fnUrl, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body)
+  })
+  .then(function(res) { return res.json(); })
+  .then(function(data) {
+    if (btn) btn.disabled = false;
+    if (btnDebug) btnDebug.disabled = false;
+    if (!data.ok) {
+      siengeSyncLog('✗ Erro: ' + (data.error || JSON.stringify(data)), 'var(--red)');
+      setSyncStatus('err');
+      return;
+    }
+    if (data.debug) {
+      // Modo debug: mostra campos retornados pelo Sienge
+      var msg = '🔍 MODO DEBUG — nenhum dado foi salvo.\n\n';
+      if (data.campos_pagar) msg += 'Campos Contas a Pagar:\n  ' + data.campos_pagar.join(', ') + '\n\nAmostra:\n' + JSON.stringify(data.sample_pagar, null, 2);
+      if (data.campos_receber) msg += '\n\nCampos Contas a Receber:\n  ' + data.campos_receber.join(', ') + '\n\nAmostra:\n' + JSON.stringify(data.sample_receber, null, 2);
+      siengeSyncLog(msg, '#1e40af');
+      setSyncStatus('ok');
+      return;
+    }
+    var log = Array.isArray(data.log) ? data.log.join('\n') : '✅ Concluído.';
+    siengeSyncLog(log, '#166534');
+    setSyncStatus('ok');
+    // Recarrega as bases do Supabase para o dashboard refletir imediatamente
+    gasLoadAll().then(function() { reconcileDecisions(); updateAll(); });
+  })
+  .catch(function(e) {
+    if (btn) btn.disabled = false;
+    if (btnDebug) btnDebug.disabled = false;
+    siengeSyncLog('✗ Falha de rede: ' + e.message + '\n\nVerifique se a URL está correta e se a Edge Function foi implantada.', 'var(--red)');
+    setSyncStatus('err');
+  });
 }
 
 // ── renderConfigPage ─────────────────────────────────────────
