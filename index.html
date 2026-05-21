@@ -1245,7 +1245,8 @@ th.dd-sortable:not(.sort-asc):not(.sort-desc) .sort-icon::after{content:'⇅';}
         <input id="sienge-end" type="date" class="pf-select" title="Data fim (vencimento)"
           style="font-size:11px;font-family:'DM Mono',monospace">
         <button class="btn btn-primary btn-sm" onclick="siengeSyncRun(false)">🔄 Atualizar do Sienge</button>
-        <button class="btn btn-secondary btn-sm" onclick="siengeSyncRun(true)" title="Mostra os campos retornados pelo Sienge sem salvar nada — útil para verificar o mapeamento de campos">🔍 Testar (debug)</button>
+        <button class="btn btn-secondary btn-sm" onclick="siengeSyncRun(true)" title="Mostra os campos retornados pelo Sienge sem salvar nada">🔍 Testar (debug)</button>
+        <button class="btn btn-secondary btn-sm" onclick="siengeSyncDiscover()" title="Descobre automaticamente os nomes corretos dos endpoints da sua instalação Sienge">🔎 Descobrir endpoints</button>
       </div>
       <div id="sienge-log" style="font-size:11px;min-height:18px;color:var(--ink3);line-height:1.8;white-space:pre-wrap"></div>
       <div style="margin-top:10px;padding:10px 14px;background:var(--surface2);border-radius:var(--r);font-size:11px;color:var(--ink3);line-height:1.8">
@@ -5663,6 +5664,33 @@ function siengeSyncInit() {
   var endInp   = document.getElementById('sienge-end');
   if (startInp && !startInp.value) startInp.value = today.getFullYear() + '-01-01';
   if (endInp   && !endInp.value)   endInp.value   = (today.getFullYear() + 1) + '-12-31';
+}
+
+function siengeSyncDiscover() {
+  var fnUrl = (document.getElementById('sienge-fn-url') || {value:''}).value.trim();
+  if (!fnUrl) { siengeSyncLog('⚠ Informe a URL da Edge Function.', 'var(--red)'); return; }
+  siengeSyncLog('⏳ Descobrindo endpoints da sua instalação Sienge…', 'var(--ink3)');
+  setSyncStatus('busy', 'Descobrindo…');
+  fetch(fnUrl, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY },
+    body: JSON.stringify({ discover: true })
+  })
+  .then(function(res) { return res.json(); })
+  .then(function(data) {
+    setSyncStatus('ok');
+    if (!data.ok) { siengeSyncLog('✗ ' + (data.error || JSON.stringify(data)), 'var(--red)'); return; }
+    siengeSyncLog(
+      '✅ Endpoints encontrados!\n\nContas a Pagar:  ' + data.endpoint_pagar +
+      '\nContas a Receber: ' + data.endpoint_receber +
+      '\n\nCopie esses nomes e me informe para atualizar a função.',
+      '#166534'
+    );
+  })
+  .catch(function(e) {
+    setSyncStatus('err');
+    siengeSyncLog('✗ Erro: ' + e.message, 'var(--red)');
+  });
 }
 
 function siengeSyncRun(debug) {
