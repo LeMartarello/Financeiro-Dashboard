@@ -4356,9 +4356,15 @@ function updateDDCockpit() {
   // "A Pagar no Período" = todos os títulos do período (mesma base do fluxo)
   var totalPagar=titles.reduce(function(s,r){return s+Math.abs(r.valor);},0);
   var totalReceber=recvs.reduce(function(s,r){return s+Math.abs(r.valor);},0);
-  // "Selecionado p/ Pagar" = só os marcados explicitamente como 'pagar'
+  // "Selecionado p/ Pagar" = pagar + negociar com novaData dentro do período
+  var _pSel=ddGetPeriod();
   var selPagar=0,selQ=0;
-  titles.forEach(function(r){var k=ddKey(r);var st=DD_STATE[k]||{acao:'pagar'};if(st.acao==='pagar'){selPagar+=Math.abs(r.valor);selQ++;}});
+  titles.forEach(function(r){
+    var k=ddKey(r);var st=DD_STATE[k]||{acao:'pagar'};
+    var isPagar=st.acao==='pagar';
+    var isNegDentro=st.acao==='negociar'&&st.novaData&&st.novaData>=_pSel.de&&st.novaData<=_pSel.ate;
+    if(isPagar||isNegDentro){selPagar+=Math.abs(r.valor);selQ++;}
+  });
   // Antecipações extras fora do período selecionado
   var p=ddGetPeriod();
   var liqAntecpExtras=0;
@@ -4383,23 +4389,19 @@ function updateDDCockpit() {
   el=document.getElementById('dd-proj-item');
   if(el){el.style.borderLeftColor=proj>=0?'var(--blue)':'var(--red)';el.style.background=proj>=0?'var(--blue-bg)':'var(--red-bg)';}
   updateAntecpTotals();
-  // ── Resumo 1: Por Dia / Por Banco (acao='pagar' + negociar dentro do período) ──
-  var _p1=ddGetPeriod();
+  // ── Resumo 1: Por Dia / Por Banco (somente acao='pagar') ─────────────────
   var diaMap={};
   titles.forEach(function(r){
     var k=ddKey(r),st=DD_STATE[k]||{};
-    var acao=st.acao||'pagar';
-    var isNegDentro=acao==='negociar'&&st.novaData&&st.novaData>=_p1.de&&st.novaData<=_p1.ate;
-    if(acao==='pagar'||isNegDentro){
-      var dia=isNegDentro?st.novaData:(st.diaPagamento||r.data);
+    if((st.acao||'pagar')==='pagar'){
+      var dia=st.diaPagamento||r.data;
       var conta=st.banco?getCBList().find(function(c){return c.id===st.banco;}):null;
       var nome=conta?conta.nome:(st.banco?st.banco:'— sem banco —');
       var cor=conta?getBancoCor(conta.banco):'var(--ink3)';
-      if(!diaMap[dia])diaMap[dia]={total:0,bancos:{},temNeg:false};
+      if(!diaMap[dia])diaMap[dia]={total:0,bancos:{}};
       if(!diaMap[dia].bancos[nome])diaMap[dia].bancos[nome]={v:0,cor:cor};
       diaMap[dia].bancos[nome].v+=Math.abs(r.valor);
       diaMap[dia].total+=Math.abs(r.valor);
-      if(isNegDentro)diaMap[dia].temNeg=true;
     }
   });
   var kpiEl=document.getElementById('dd-bank-kpis');
@@ -4410,15 +4412,14 @@ function updateDDCockpit() {
     } else {
       kpiEl.innerHTML=dias.map(function(dia){
         var dm=diaMap[dia];
-        var borderCor=dm.temNeg?'#7c3aed':'var(--accent)';
         var bancosHtml=Object.keys(dm.bancos).map(function(bn){
           var b=dm.bancos[bn];
           return '<span style="display:inline-flex;align-items:center;gap:3px;font-size:10px;color:var(--ink2)">'
             +'<span style="width:7px;height:7px;border-radius:50%;background:'+b.cor+';display:inline-block"></span>'
             +bn+': '+fmtNeg(-b.v)+'</span>';
         }).join('<span style="color:var(--border2);margin:0 2px">·</span>');
-        return '<div class="dd-bank-kpi" style="border-left-color:'+borderCor+'">'
-          +'<div><div class="dd-bank-kpi-name">'+fmtDate(dia)+(dm.temNeg?' <span style="font-size:9px;color:#7c3aed;font-weight:500">negoc.</span>':'')+'</div>'
+        return '<div class="dd-bank-kpi" style="border-left-color:var(--accent)">'
+          +'<div><div class="dd-bank-kpi-name">'+fmtDate(dia)+'</div>'
           +'<div class="dd-bank-kpi-val">'+fmtNeg(-dm.total)+'</div>'
           +'<div style="margin-top:2px;line-height:1.6">'+bancosHtml+'</div>'
           +'</div></div>';
@@ -4438,14 +4439,11 @@ function updateDDCockpit() {
         +'<div class="dd-bank-kpi-val" style="color:#b45309">'+fmtNeg(-pendV)+'</div></div></div>';
     }
   }
-  // ── Resumo 3: Negociar por data (apenas com novaData FORA do período, ou sem data) ──
-  var _p3=ddGetPeriod();
+  // ── Resumo 3: Negociar por data (todos os negociar, agrupados por novaData) ──
   var negMap={};
   titles.forEach(function(r){
     var k=ddKey(r),st=DD_STATE[k]||{};
     if(st.acao==='negociar'){
-      // Se novaData está dentro do período já aparece no Resumo 1 — omite aqui
-      if(st.novaData&&st.novaData>=_p3.de&&st.novaData<=_p3.ate) return;
       var d=st.novaData||'—';
       if(!negMap[d])negMap[d]={v:0,q:0};
       negMap[d].v+=Math.abs(r.valor);negMap[d].q++;
