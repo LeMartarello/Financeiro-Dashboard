@@ -921,10 +921,20 @@ th.dd-sortable:not(.sort-asc):not(.sort-desc) .sort-icon::after{content:'⇅';}
       <div class="dd-cockpit-sub">Bancário + Receber − Pagar Selecionado</div>
     </div>
   </div>
-  <!-- Bank KPI bar -->
-  <div class="dd-bank-bar" id="dd-bank-bar" style="padding:8px 24px 4px;background:var(--surface);border-bottom:1px solid var(--border);">
-    <span style="font-size:10px;font-weight:700;color:var(--ink3);text-transform:uppercase;letter-spacing:.5px;font-family:'DM Mono',monospace;align-self:center;margin-right:4px">Por banco:</span>
-    <div id="dd-bank-kpis" style="display:flex;gap:8px;flex-wrap:wrap"></div>
+  <!-- Summary bar: Por dia/banco · Pendentes · Negociar -->
+  <div id="dd-bank-bar" style="padding:8px 24px 6px;background:var(--surface);border-bottom:1px solid var(--border);display:flex;gap:0;flex-wrap:wrap;align-items:flex-start">
+    <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:flex-start;padding-right:16px;min-width:0">
+      <span style="font-size:10px;font-weight:700;color:var(--ink3);text-transform:uppercase;letter-spacing:.5px;font-family:'DM Mono',monospace;white-space:nowrap;padding-top:3px">✓ Pagar / Dia:</span>
+      <div id="dd-bank-kpis" style="display:flex;gap:6px;flex-wrap:wrap"></div>
+    </div>
+    <div id="dd-pend-bar" style="display:none;gap:6px;align-items:flex-start;border-left:1px solid var(--border);padding:0 16px">
+      <span style="font-size:10px;font-weight:700;color:#b45309;text-transform:uppercase;letter-spacing:.5px;font-family:'DM Mono',monospace;white-space:nowrap;padding-top:3px">⏳ Pendente:</span>
+      <div id="dd-pend-kpi" style="display:flex;gap:6px;flex-wrap:wrap"></div>
+    </div>
+    <div id="dd-neg-bar" style="display:none;gap:6px;align-items:flex-start;border-left:1px solid var(--border);padding:0 16px">
+      <span style="font-size:10px;font-weight:700;color:#7c3aed;text-transform:uppercase;letter-spacing:.5px;font-family:'DM Mono',monospace;white-space:nowrap;padding-top:3px">✎ Negociar:</span>
+      <div id="dd-neg-kpi" style="display:flex;gap:6px;flex-wrap:wrap"></div>
+    </div>
   </div>
 
   <!-- Content -->
@@ -978,6 +988,11 @@ th.dd-sortable:not(.sort-asc):not(.sort-desc) .sort-icon::after{content:'⇅';}
         <input type="date" id="dd-bulk-nova-data" class="dd-date-inp">
       </span>
       <span style="color:var(--border2);margin:0 4px">|</span>
+      <span style="font-size:11px;color:var(--ink3)">Dia Pgto:</span>
+      <select class="dd-bulk-sel" id="dd-bulk-dia-pgto">
+        <option value="__keep__">— manter —</option>
+      </select>
+      <span style="color:var(--border2);margin:0 4px">|</span>
       <span style="font-size:11px;color:var(--ink3)">Banco:</span>
       <select class="dd-bulk-sel" id="dd-bulk-banco">
         <option value="__keep__">— manter banco atual —</option>
@@ -1013,6 +1028,7 @@ th.dd-sortable:not(.sort-asc):not(.sort-desc) .sort-icon::after{content:'⇅';}
           <th class="dd-sortable" style="text-align:center" data-col="atraso" onclick="ddSetSort('atraso')">Atraso<span class="sort-icon"></span></th>
           <th class="dd-sortable tr" data-col="valor" onclick="ddSetSort('valor')">Valor<span class="sort-icon"></span></th>
           <th class="dd-sortable" data-col="acao" onclick="ddSetSort('acao')">Ação<span class="sort-icon"></span></th>
+          <th class="dd-sortable" data-col="diaPagamento" onclick="ddSetSort('diaPagamento')" style="white-space:nowrap">Dia Pgto<span class="sort-icon"></span></th>
           <th class="dd-sortable" data-col="novaData" onclick="ddSetSort('novaData')">Nova Data<span class="sort-icon"></span></th>
           <th class="dd-sortable" data-col="banco" onclick="ddSetSort('banco')">Banco<span class="sort-icon"></span></th>
           <th class="dd-sortable" data-col="forma" onclick="ddSetSort('forma')" style="white-space:nowrap">Forma Pgto<span class="sort-icon"></span></th>
@@ -4192,6 +4208,12 @@ var DD_STATE = {};
 var DD_TODAY = '';
 var _ddFromSupabase = false; // flag: DD_STATE foi carregado do Supabase
 
+function ddGetPeriodDays() {
+  var p=ddGetPeriod(), days=[];
+  var d=new Date(p.de+'T00:00:00'), end=new Date(p.ate+'T00:00:00');
+  while(d<=end){days.push(d.toISOString().slice(0,10));d.setDate(d.getDate()+1);}
+  return days;
+}
 function ddGetPeriod() {
   var todayISO = new Date().toISOString().slice(0,10);
   var de  = (document.getElementById('dd-de')  || {value:''}).value || todayISO;
@@ -4311,28 +4333,79 @@ function updateDDCockpit() {
   el=document.getElementById('dd-proj-item');
   if(el){el.style.borderLeftColor=proj>=0?'var(--blue)':'var(--red)';el.style.background=proj>=0?'var(--blue-bg)':'var(--red-bg)';}
   updateAntecpTotals();
-  // ── Bank KPI bar ───────────────────────────────────────────
-  var bankMap={};
+  // ── Resumo 1: Por Dia / Por Banco (acao='pagar') ──────────────────────
+  var diaMap={};
   titles.forEach(function(r){
-    var k=ddKey(r),st=DD_STATE[k]||{acao:'pagar'};
-    if((st.acao||'pagar')==='pagar'&&st.banco){
-      var conta=getCBList().find(function(c){return c.id===st.banco;});
-      var nome=conta?conta.nome:st.banco;
-      if(!bankMap[nome])bankMap[nome]={v:0,cor:conta?getBancoCor(conta.banco):'var(--accent)'};
-      bankMap[nome].v+=Math.abs(r.valor);
+    var k=ddKey(r),st=DD_STATE[k]||{};
+    if((st.acao||'pagar')==='pagar'){
+      var dia=st.diaPagamento||r.data;
+      var conta=st.banco?getCBList().find(function(c){return c.id===st.banco;}):null;
+      var nome=conta?conta.nome:(st.banco?st.banco:'— sem banco —');
+      var cor=conta?getBancoCor(conta.banco):'var(--ink3)';
+      if(!diaMap[dia])diaMap[dia]={total:0,bancos:{}};
+      if(!diaMap[dia].bancos[nome])diaMap[dia].bancos[nome]={v:0,cor:cor};
+      diaMap[dia].bancos[nome].v+=Math.abs(r.valor);
+      diaMap[dia].total+=Math.abs(r.valor);
     }
   });
   var kpiEl=document.getElementById('dd-bank-kpis');
   if(kpiEl){
-    var keys=Object.keys(bankMap);
-    if(!keys.length){kpiEl.innerHTML='<span style="font-size:11px;color:var(--ink3);font-family:\'DM Mono\',monospace">Atribua bancos aos títulos "Pagar hoje"</span>';}
+    var dias=Object.keys(diaMap).sort();
+    if(!dias.length){
+      kpiEl.innerHTML='<span style="font-size:11px;color:var(--ink3);font-family:\'DM Mono\',monospace">Nenhum título marcado para pagar</span>';
+    } else {
+      kpiEl.innerHTML=dias.map(function(dia){
+        var dm=diaMap[dia];
+        var bancosHtml=Object.keys(dm.bancos).map(function(bn){
+          var b=dm.bancos[bn];
+          return '<span style="display:inline-flex;align-items:center;gap:3px;font-size:10px;color:var(--ink2)">'
+            +'<span style="width:7px;height:7px;border-radius:50%;background:'+b.cor+';display:inline-block"></span>'
+            +bn+': '+fmtNeg(-b.v)+'</span>';
+        }).join('<span style="color:var(--border2);margin:0 2px">·</span>');
+        return '<div class="dd-bank-kpi" style="border-left-color:var(--accent)">'
+          +'<div><div class="dd-bank-kpi-name">'+fmtDate(dia)+'</div>'
+          +'<div class="dd-bank-kpi-val">'+fmtNeg(-dm.total)+'</div>'
+          +'<div style="margin-top:2px;line-height:1.6">'+bancosHtml+'</div>'
+          +'</div></div>';
+      }).join('');
+    }
+  }
+  // ── Resumo 2: Pendentes ────────────────────────────────────────────────
+  var pendV=0,pendQ=0;
+  titles.forEach(function(r){var k=ddKey(r),st=DD_STATE[k]||{};if(!st.acao){pendV+=Math.abs(r.valor);pendQ++;}});
+  var pendBar=document.getElementById('dd-pend-bar'),pendKpi=document.getElementById('dd-pend-kpi');
+  if(pendBar){
+    if(!pendQ){pendBar.style.display='none';}
     else{
-      kpiEl.innerHTML=keys.map(function(n){
-        var b=bankMap[n];
-        return '<div class="dd-bank-kpi" style="border-left-color:'+b.cor+'">'
-          +'<div><div class="dd-bank-kpi-name">'+n+'</div>'
-          +'<div class="dd-bank-kpi-val">('+fmtNeg(-b.v)+')</div></div>'
-          +'</div>';
+      pendBar.style.display='flex';
+      if(pendKpi)pendKpi.innerHTML='<div class="dd-bank-kpi" style="border-left-color:#f59e0b">'
+        +'<div><div class="dd-bank-kpi-name">'+pendQ+' título'+(pendQ!==1?'s':'')+'</div>'
+        +'<div class="dd-bank-kpi-val" style="color:#b45309">'+fmtNeg(-pendV)+'</div></div></div>';
+    }
+  }
+  // ── Resumo 3: Negociar por data ────────────────────────────────────────
+  var negMap={};
+  titles.forEach(function(r){
+    var k=ddKey(r),st=DD_STATE[k]||{};
+    if(st.acao==='negociar'){
+      var d=st.novaData||'—';
+      if(!negMap[d])negMap[d]={v:0,q:0};
+      negMap[d].v+=Math.abs(r.valor);negMap[d].q++;
+    }
+  });
+  var negBar=document.getElementById('dd-neg-bar'),negKpi=document.getElementById('dd-neg-kpi');
+  if(negBar){
+    var negKeys=Object.keys(negMap);
+    if(!negKeys.length){negBar.style.display='none';}
+    else{
+      negBar.style.display='flex';
+      if(negKpi)negKpi.innerHTML=negKeys.sort().map(function(d){
+        var n=negMap[d];
+        return '<div class="dd-bank-kpi" style="border-left-color:#7c3aed">'
+          +'<div><div class="dd-bank-kpi-name">'+(d==='—'?'Sem data':fmtDate(d))+'</div>'
+          +'<div class="dd-bank-kpi-val" style="color:#7c3aed">'+fmtNeg(-n.v)+'</div>'
+          +'<div style="font-size:10px;color:var(--ink3)">'+n.q+' título'+(n.q!==1?'s':'')+'</div>'
+          +'</div></div>';
       }).join('');
     }
   }
@@ -4499,6 +4572,7 @@ function ddSortTitles(titles, today) {
     else if (col === 'atraso') { va = Math.round((today-new Date(a.data+'T00:00:00'))/86400000); vb = Math.round((today-new Date(b.data+'T00:00:00'))/86400000); }
     else if (col === 'valor') { va = Math.abs(a.valor); vb = Math.abs(b.valor); }
     else if (col === 'acao') { va = stA.acao||''; vb = stB.acao||''; }
+    else if (col === 'diaPagamento') { va = stA.diaPagamento||a.data||''; vb = stB.diaPagamento||b.data||''; }
     else if (col === 'novaData') { va = stA.novaData||''; vb = stB.novaData||''; }
     else if (col === 'banco') {
       var cA = stA.banco ? (getCBList().find(function(c){return c.id===stA.banco;})||{nome:''}) : {nome:''};
@@ -4551,8 +4625,11 @@ function renderDecisaoDia() {
   if(empty) empty.style.display='none';
   titles.forEach(function(r){
     var k=ddKey(r);
-    var st=DD_STATE[k]||{acao:'pagar',novaData:'',obs:'',banco:'',forma:'lote'};
-    if(!DD_STATE[k]){DD_STATE[k]={acao:'pagar',novaData:'',obs:'',banco:'',forma:'lote'};}
+    var p=ddGetPeriod();
+    var defDiaPgto=r.data>=p.de&&r.data<=p.ate?r.data:p.de;
+    var st=DD_STATE[k]||{acao:'pagar',diaPagamento:defDiaPgto,novaData:'',obs:'',banco:'',forma:'lote'};
+    if(!DD_STATE[k]){DD_STATE[k]={acao:'pagar',diaPagamento:defDiaPgto,novaData:'',obs:'',banco:'',forma:'lote'};}
+    if(!DD_STATE[k].diaPagamento) DD_STATE[k].diaPagamento=defDiaPgto;
     var isCrit=isCritico(r.fornecedor);
     var tDate=new Date(r.data+'T00:00:00');
     var diffDays=Math.round((today-tDate)/86400000);
@@ -4570,7 +4647,7 @@ function renderDecisaoDia() {
     tr.dataset.doc=r.documento||'';
     tr.dataset.valor=Math.abs(r.valor).toString();
     applyDDRowStyle(tr,st.acao);
-    // Cols: 0=cb, 1=titulo, 2=forn, 3=plano, 4=venc, 5=atraso, 6=valor, 7=ação, 8=nova data, 9=banco, 10=forma, 11=obs
+    // Cols: 0=cb, 1=titulo, 2=forn, 3=plano, 4=venc, 5=atraso, 6=valor, 7=ação, 8=diaPgto, 9=nova data, 10=banco, 11=forma, 12=obs
     tr.innerHTML='<td style="text-align:center;padding:4px 2px"></td>'
       +'<td style="text-align:center;font-family:DM Mono,monospace;font-size:11px;color:var(--ink2);white-space:nowrap">'+(r.titulo||'—')+'</td>'
       +'<td title="'+r.fornecedor+'">'+(isCrit?'<span class="badge-critico">⭐</span> ':'')+trunc(r.fornecedor,22)+'</td>'
@@ -4578,7 +4655,7 @@ function renderDecisaoDia() {
       +'<td style="font-family:DM Mono,monospace;font-size:11px;white-space:nowrap">'+fmtDate(r.data)+'</td>'
       +'<td style="text-align:center">'+atrasoBadge+'</td>'
       +'<td class="tr" style="color:var(--red);font-weight:600">'+fmtNeg(r.valor)+'</td>'
-      +'<td></td><td></td><td></td><td></td><td></td>';
+      +'<td></td><td></td><td></td><td></td><td></td><td></td>';
     // Checkbox
     var cb=document.createElement('input');cb.type='checkbox';cb.className='dd-cb';
     cb.dataset.key=k;
@@ -4593,36 +4670,53 @@ function renderDecisaoDia() {
     sel.addEventListener('change',(function(k_,tr_){return function(){
       DD_STATE[k_]=DD_STATE[k_]||{};DD_STATE[k_].acao=this.value;
       applyDDRowStyle(tr_,this.value);
-      var nd=tr_.querySelectorAll('td')[8].querySelector('.dd-nova-data');
+      var nd=tr_.querySelectorAll('td')[9].querySelector('.dd-nova-data');
       if(nd)nd.style.display=(this.value==='atrasar'||this.value==='negociar')?'':'none';
+      var dpEl=tr_.querySelectorAll('td')[8].querySelector('select');
+      if(dpEl)dpEl.style.opacity=(this.value===''||this.value==='pagar')?'1':'0.3';
       saveDDState();updateDDCockpit();
     };})(k,tr));
     tr.querySelectorAll('td')[7].appendChild(sel);
-    // Nova data — td[8]
+    // Dia Pgto — td[8]: qual dia do período pagar este título
+    var periodDays=ddGetPeriodDays();
+    var dpSel=document.createElement('select');dpSel.className='dd-banco-sel';
+    if(periodDays.length<=1){
+      // Período de 1 dia: só mostra o dia fixo
+      var dOpt=document.createElement('option');dOpt.value=periodDays[0]||p.de;dOpt.textContent=fmtDate(periodDays[0]||p.de);dpSel.appendChild(dOpt);
+    } else {
+      periodDays.forEach(function(d){
+        var dOpt=document.createElement('option');dOpt.value=d;dOpt.textContent=fmtDate(d);dpSel.appendChild(dOpt);
+      });
+    }
+    dpSel.value=st.diaPagamento||defDiaPgto;
+    dpSel.style.opacity=(st.acao===''||!st.acao||st.acao==='pagar')?'1':'0.3';
+    dpSel.addEventListener('change',(function(k_){return function(){DD_STATE[k_]=DD_STATE[k_]||{};DD_STATE[k_].diaPagamento=this.value;saveDDState();updateDDCockpit();};})(k));
+    tr.querySelectorAll('td')[8].appendChild(dpSel);
+    // Nova data — td[9]
     var nd=document.createElement('input');nd.type='date';nd.className='dd-nova-data';nd.value=st.novaData||'';
     nd.style.display=(st.acao==='atrasar'||st.acao==='negociar')?'':'none';
-    nd.addEventListener('change',(function(k_){return function(){DD_STATE[k_]=DD_STATE[k_]||{};DD_STATE[k_].novaData=this.value;saveDDState();};})(k));
-    tr.querySelectorAll('td')[8].appendChild(nd);
-    // Banco select — td[9]
+    nd.addEventListener('change',(function(k_){return function(){DD_STATE[k_]=DD_STATE[k_]||{};DD_STATE[k_].novaData=this.value;saveDDState();updateDDCockpit();};})(k));
+    tr.querySelectorAll('td')[9].appendChild(nd);
+    // Banco select — td[10]
     var bsel=document.createElement('select');bsel.className='dd-banco-sel';
     var bancosOpts='<option value="">— banco —</option>';
     getCBList().forEach(function(c){bancosOpts+='<option value="'+c.id+'">'+c.nome+'</option>';});
     bsel.innerHTML=bancosOpts;
     bsel.value=st.banco||'';
     bsel.addEventListener('change',(function(k_){return function(){DD_STATE[k_]=DD_STATE[k_]||{};DD_STATE[k_].banco=this.value;saveDDState();updateDDCockpit();};})(k));
-    tr.querySelectorAll('td')[9].appendChild(bsel);
-    // Forma de pagamento — td[10]
+    tr.querySelectorAll('td')[10].appendChild(bsel);
+    // Forma de pagamento — td[11]
     var fsel=document.createElement('select');fsel.className='dd-banco-sel';
     [['lote','📦 Pago em Lote'],['manual','✍ Manual']].forEach(function(o){
       var opt=document.createElement('option');opt.value=o[0];opt.textContent=o[1];
       if((st.forma||'lote')===o[0])opt.selected=true;fsel.appendChild(opt);
     });
     fsel.addEventListener('change',(function(k_){return function(){DD_STATE[k_]=DD_STATE[k_]||{};DD_STATE[k_].forma=this.value;saveDDState();};})(k));
-    tr.querySelectorAll('td')[10].appendChild(fsel);
-    // Obs — td[11]
+    tr.querySelectorAll('td')[11].appendChild(fsel);
+    // Obs — td[12]
     var obs=document.createElement('input');obs.type='text';obs.className='dd-obs-input';obs.placeholder='Observação...';obs.value=st.obs||'';
     obs.addEventListener('change',(function(k_){return function(){DD_STATE[k_]=DD_STATE[k_]||{};DD_STATE[k_].obs=this.value;saveDDState();};})(k));
-    tr.querySelectorAll('td')[11].appendChild(obs);
+    tr.querySelectorAll('td')[12].appendChild(obs);
     tbody.appendChild(tr);
   });
   updateDDCockpit();
@@ -5278,6 +5372,14 @@ function ddUpdateBulkBar(){
   if(chkAll) chkAll.indeterminate=keys.length>0&&keys.length<total;
   if(chkAll&&keys.length===total&&total>0) chkAll.checked=true;
   if(chkAll&&keys.length===0) chkAll.checked=false;
+  // Populate Dia Pgto select
+  var dsel=document.getElementById('dd-bulk-dia-pgto');
+  if(dsel){
+    var curD=dsel.value;
+    dsel.innerHTML='<option value="__keep__">— manter —</option>';
+    ddGetPeriodDays().forEach(function(d){dsel.innerHTML+='<option value="'+d+'">'+fmtDate(d)+'</option>';});
+    dsel.value=curD||'__keep__';
+  }
   // Populate bulk banco select with current accounts
   var bsel=document.getElementById('dd-bulk-banco');
   if(bsel){
@@ -5311,6 +5413,7 @@ function ddBulkApply(){
   var banco=document.getElementById('dd-bulk-banco').value;
   var novaData=document.getElementById('dd-bulk-nova-data').value;
   var forma=document.getElementById('dd-bulk-forma').value;
+  var diaPgto=(document.getElementById('dd-bulk-dia-pgto')||{}).value||'__keep__';
   keys.forEach(function(k){
     DD_STATE[k]=DD_STATE[k]||{};
     DD_STATE[k].acao=acao;
@@ -5320,6 +5423,7 @@ function ddBulkApply(){
     if(banco==='__clear__') DD_STATE[k].banco='';
     else if(banco!=='__keep__') DD_STATE[k].banco=banco;
     if(forma!=='__keep__') DD_STATE[k].forma=forma;
+    if(diaPgto!=='__keep__') DD_STATE[k].diaPagamento=diaPgto;
   });
   saveDDState();
   // Re-render preserving the current selection
