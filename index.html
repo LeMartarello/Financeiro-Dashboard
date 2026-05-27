@@ -1600,6 +1600,56 @@ function filteredReceber(){
   });
 }
 
+// ── DD → Fluxo: aplica decisões de pagamento sobre a lista de pagar ──────────
+// Retorna nova lista com datas/semanas ajustadas conforme DD_STATE.
+// Regras:
+//   acao='' (pendente)           → exclui do fluxo
+//   acao='negociar' sem novaData → exclui do fluxo
+//   acao='pagar' c/ diaPagamento → move para diaPagamento
+//   acao='atrasar'/'negociar' c/ novaData → move para novaData
+//   demais (sem decisão, pagar sem alteração) → mantém como está
+function applyDDToFluxo(dp) {
+  if (!window.DD_STATE) return dp;
+  var result = [];
+  for (var i = 0; i < dp.length; i++) {
+    var r = dp[i];
+    var k = ddKey(r);
+    var st = DD_STATE[k];
+    if (!st) { result.push(r); continue; }
+    var acao = st.acao;
+    // Pendente (ação vazia) → remove do fluxo
+    if (acao === '') continue;
+    // Negociar sem nova data → remove do fluxo (data ainda indefinida)
+    if (acao === 'negociar' && !st.novaData) continue;
+    // Determina a nova data
+    var newData = null;
+    if (acao === 'pagar' && st.diaPagamento && st.diaPagamento !== r.data) {
+      newData = st.diaPagamento;
+    } else if ((acao === 'atrasar' || acao === 'negociar') && st.novaData) {
+      newData = st.novaData;
+    }
+    if (newData) {
+      // Cria cópia rasa do registro com data/semana/mes/ano atualizados
+      var parts = newData.split('-');
+      var nr = {};
+      for (var p in r) nr[p] = r[p];
+      nr.data  = newData;
+      nr.semana = getSemana(newData);
+      nr.mes   = parseInt(parts[1], 10);
+      nr.ano   = parseInt(parts[0], 10);
+      // Status: datas passadas → VENCIDO, futuras → A VENCER
+      var today = new Date(); today.setHours(0,0,0,0);
+      var nd = new Date(parseInt(parts[0]), parseInt(parts[1])-1, parseInt(parts[2]));
+      nr.status = nd < today ? 'VENCIDO' : 'A VENCER';
+      result.push(nr);
+    } else {
+      result.push(r);
+    }
+  }
+  return result;
+}
+// ─────────────────────────────────────────────────────────────────────────────
+
 function updateKPIs_old(dp,dr){
   function _s(id,v){var e=document.getElementById(id);if(e)e.textContent=v;}
   var pT=dp.reduce(function(s,r){return s+r.valor;},0);
@@ -3795,7 +3845,7 @@ function renderFluxo() {
   var diff = today.getDate() - day + (day===0?-6:1);
   var weekStart = new Date(today); weekStart.setDate(diff);
 
-  var dp = filteredPagar();
+  var dp = applyDDToFluxo(filteredPagar());
   var dr = filteredReceber();
 
   // Build semana lookup
@@ -3988,7 +4038,7 @@ function renderFluxo15() {
   var saldoInpRaw = saldoInpEl ? saldoInpEl.value.replace(/[R$\s.]/g,'').replace(',','.') : '0';
   var saldoAcum = parseFloat(saldoInpRaw) || 0;
 
-  var dp = filteredPagar();
+  var dp = applyDDToFluxo(filteredPagar());
   var dr = filteredReceber();
 
   // Build daily lookup
@@ -4080,7 +4130,7 @@ function renderFluxoExt() {
   var saldoInpRaw = saldoInpEl ? saldoInpEl.value.replace(/[R$\s.]/g,'').replace(',','.') : '0';
   var saldoBase = parseFloat(saldoInpRaw) || 0;
 
-  var dp = filteredPagar();
+  var dp = applyDDToFluxo(filteredPagar());
   var dr = filteredReceber();
 
   // Build semana lookup
@@ -4146,7 +4196,7 @@ function renderFluxo15Ext() {
   var saldoInpEl = document.getElementById('saldo-inicial');
   var saldoInpRaw = saldoInpEl ? saldoInpEl.value.replace(/[R$\s.]/g,'').replace(',','.') : '0';
   var saldoBase = parseFloat(saldoInpRaw) || 0;
-  var dp = filteredPagar(), dr = filteredReceber();
+  var dp = applyDDToFluxo(filteredPagar()), dr = filteredReceber();
   var pagarByDay = {}, receberByDay = {};
   dp.forEach(function(r){ if(!pagarByDay[r.data]) pagarByDay[r.data]=0; pagarByDay[r.data]+=r.valor; });
   dr.forEach(function(r){ if(!receberByDay[r.data]) receberByDay[r.data]=0; receberByDay[r.data]+=r.valor; });
@@ -4409,6 +4459,10 @@ function updateDDCockpit() {
       }).join('');
     }
   }
+  // Reflete decisões nos dashboards de fluxo
+  renderFluxo();
+  renderFluxo15();
+  _reRenderExt();
 }
 function antecpKey(r){return 'antecp||'+(r.cliente||'')+'||'+(r.documento||'')+'||'+(r.data||'');}
 function getAntecpLiquido(){
