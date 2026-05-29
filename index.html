@@ -5822,12 +5822,11 @@ function siengeSyncInit() {
     var inp = document.getElementById('sienge-fn-url');
     if (inp && saved) inp.value = saved;
   } catch(e) {}
-  // Datas padrão: início do ano até fim do próximo ano
-  var today = new Date();
+  // Datas padrão fixas: cobertura total
   var startInp = document.getElementById('sienge-start');
   var endInp   = document.getElementById('sienge-end');
-  if (startInp && !startInp.value) startInp.value = today.getFullYear() + '-01-01';
-  if (endInp   && !endInp.value)   endInp.value   = (today.getFullYear() + 1) + '-12-31';
+  if (startInp && !startInp.value) startInp.value = '2018-01-01';
+  if (endInp   && !endInp.value)   endInp.value   = '2100-12-31';
 }
 
 function siengeSyncDiscover() {
