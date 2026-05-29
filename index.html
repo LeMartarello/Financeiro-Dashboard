@@ -1251,15 +1251,15 @@ th.dd-sortable:not(.sort-asc):not(.sort-desc) .sort-icon::after{content:'⇅';}
           oninput="try{localStorage.setItem('sienge_fn_url',this.value)}catch(e){}">
       </div>
       <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-bottom:6px">
-        <select id="sienge-tipo" class="pf-select" style="font-size:11px;padding:5px 8px">
+        <select id="sienge-tipo" class="pf-select" style="width:auto;font-size:11px;padding:5px 8px">
           <option value="ambos">Pagar + Receber</option>
           <option value="pagar">Só Contas a Pagar</option>
           <option value="receber">Só Contas a Receber</option>
         </select>
         <input id="sienge-start" type="date" class="pf-select" title="Data início (vencimento)"
-          style="font-size:11px;font-family:'DM Mono',monospace">
+          style="width:auto;font-size:11px;font-family:'DM Mono',monospace">
         <input id="sienge-end" type="date" class="pf-select" title="Data fim (vencimento)"
-          style="font-size:11px;font-family:'DM Mono',monospace">
+          style="width:auto;font-size:11px;font-family:'DM Mono',monospace">
         <button class="btn btn-primary btn-sm" onclick="siengeSyncRun(false)">🔄 Atualizar do Sienge</button>
         <button class="btn btn-secondary btn-sm" onclick="siengeSyncRun(true)" title="Mostra os campos retornados pelo Sienge sem salvar nada">🔍 Testar (debug)</button>
         <button class="btn btn-secondary btn-sm" onclick="siengeSyncDiscover()" title="Descobre automaticamente os nomes corretos dos endpoints da sua instalação Sienge">🔎 Descobrir endpoints</button>
