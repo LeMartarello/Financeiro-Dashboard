@@ -1237,9 +1237,8 @@ th.dd-sortable:not(.sort-asc):not(.sort-desc) .sort-icon::after{content:'⇅';}
       </div>
     </div>
 
-    <!-- Integração Sienge -->
-    <div style="font-size:13px;font-weight:600;color:var(--ink);margin-bottom:10px;font-family:'DM Serif Display',serif">🏗 Integração Sienge</div>
-    <div class="panel-card" style="margin-bottom:16px">
+    <!-- Integração Sienge removida — base é sempre carregada via CSV/upload -->
+    <div class="panel-card" style="margin-bottom:16px;display:none">
       <div style="font-size:11px;color:var(--ink3);margin-bottom:10px">
         Busca Contas a Pagar e a Receber diretamente do Sienge via API e atualiza o Supabase automaticamente.<br>
         Requer a <strong>Supabase Edge Function</strong> implantada com suas credenciais Sienge configuradas.
@@ -5378,12 +5377,18 @@ function loadCB(){
 }
 function saveCB(list){
   try{localStorage.setItem('fin_contas_bancarias_v1',JSON.stringify(list));}catch(e){}
-  gasSaveDebounced('contas_bancarias', list);
+  // Save imediato (bancos mudam raramente, importante ter ID consistente no Supabase)
+  var sb=getSB();
+  if(sb){
+    setSyncStatus('busy');
+    sbSaveConfig('contas_bancarias',list)
+      .then(function(){setSyncStatus('ok');})
+      .catch(function(){setSyncStatus('err');});
+  }
 }
 function getCBList(){ return loadCB(); }
 
 function renderConfigPage(){
-  siengeSyncInit();
   // Render bank accounts table
   var list=loadCB();
   var tbody=document.getElementById('cfg-contas-tbody');
@@ -5434,15 +5439,16 @@ function openContaModal(id){
   document.getElementById('cb-save').addEventListener('click',function(){
     var nome=document.getElementById('cb-nome').value.trim();
     if(!nome){var er=document.getElementById('cb-error');er.style.display='block';er.textContent='Nome obrigatório.';return;}
+    var list2=loadCB();
+    var nextId=list2.reduce(function(m,x){var n=parseInt((x.id||'').replace('c',''))||0;return n>m?n:m;},0)+1;
     var obj={
-      id:isNew?'c'+(++_cbNextId):c.id,
+      id:isNew?'c'+nextId:c.id,
       banco:document.getElementById('cb-banco').value,
       nome:nome,
       agencia:document.getElementById('cb-agencia').value.trim(),
       numero:document.getElementById('cb-numero').value.trim(),
       titular:document.getElementById('cb-titular').value.trim(),
     };
-    var list2=loadCB();
     if(isNew){list2.push(obj);}
     else{var idx=list2.findIndex(function(x){return x.id===c.id;});if(idx>=0)list2[idx]=obj;}
     saveCB(list2);
