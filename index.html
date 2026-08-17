@@ -965,6 +965,7 @@ th.dd-sortable:not(.sort-asc):not(.sort-desc) .sort-icon::after{content:'⇅';}
       <button class="btn btn-secondary btn-sm" onclick="ddResetPeriod()">Hoje</button>
       <button class="btn btn-secondary btn-sm" onclick="ddSetPeriod(7)">Próx. 7 dias</button>
       <button class="btn btn-secondary btn-sm" onclick="ddSetPeriod(30)">Próx. 30 dias</button>
+      <button class="btn btn-secondary btn-sm" id="dd-undo-btn" onclick="ddUndo()" disabled style="opacity:0.4;margin-left:4px" title="Nada para desfazer">↩ Desfazer</button>
       <label style="display:flex;align-items:center;gap:5px;font-size:11px;color:var(--ink3);font-family:'Roboto',sans-serif;margin-left:8px;border-left:1px solid var(--border);padding-left:12px;cursor:pointer">
         <input type="checkbox" id="dd-only-estr" onchange="renderDecisaoDia()" style="accent-color:var(--accent);width:12px;height:12px">
         ⭐ Só estratégicos
@@ -4351,6 +4352,50 @@ function saveDDState() {
   try{localStorage.setItem('fin_decisao_v1_'+DD_TODAY,JSON.stringify(DD_STATE));}catch(e){}
   gasSaveDebounced('decisoes', DD_STATE);
 }
+
+// ── Undo (histórico das decisões de pagamento) ────────────────────────
+var DD_UNDO_STACK = [];
+function ddPushUndo() {
+  try {
+    DD_UNDO_STACK.push(JSON.stringify(DD_STATE));
+    if (DD_UNDO_STACK.length > 30) DD_UNDO_STACK.shift();
+    ddUpdateUndoBtn();
+  } catch(e) {}
+}
+function ddUndo() {
+  if (!DD_UNDO_STACK.length) return;
+  try {
+    DD_STATE = JSON.parse(DD_UNDO_STACK.pop());
+    saveDDState();
+    renderDecisaoDia();
+    updateDDCockpit();
+  } catch(e) {}
+  ddUpdateUndoBtn();
+}
+function ddUpdateUndoBtn() {
+  var btn = document.getElementById('dd-undo-btn');
+  if (!btn) return;
+  var n = DD_UNDO_STACK.length;
+  btn.disabled = !n;
+  btn.style.opacity = n ? '1' : '0.4';
+  btn.title = n
+    ? 'Desfazer última alteração (' + n + ' passo' + (n!==1?'s':'') + ' disponíve' + (n!==1?'is':'l') + ')'
+    : 'Nada para desfazer';
+}
+// Ctrl+Z aciona desfazer quando a página DD está ativa
+document.addEventListener('keydown', function(e) {
+  if ((e.ctrlKey || e.metaKey) && e.key === 'z') {
+    var ddPage = document.getElementById('page-decisao-dia');
+    if (ddPage && ddPage.classList.contains('active')) {
+      var tag = document.activeElement ? document.activeElement.tagName : '';
+      if (tag !== 'INPUT' && tag !== 'TEXTAREA') {
+        e.preventDefault();
+        ddUndo();
+      }
+    }
+  }
+});
+// ─────────────────────────────────────────────────────────────────────
 function updateDDCockpit() {
   var titles=getDDTitles(), recvs=getDDReceivables();
   // "A Pagar no Período" = todos os títulos do período (mesma base do fluxo)
@@ -4728,6 +4773,7 @@ function renderDecisaoDia() {
       if(st.acao===o[0])opt.selected=true;sel.appendChild(opt);
     });
     sel.addEventListener('change',(function(k_,tr_){return function(){
+      ddPushUndo();
       DD_STATE[k_]=DD_STATE[k_]||{};DD_STATE[k_].acao=this.value;
       applyDDRowStyle(tr_,this.value);
       var nd=tr_.querySelectorAll('td')[9].querySelector('.dd-nova-data');
@@ -4750,12 +4796,12 @@ function renderDecisaoDia() {
     }
     dpSel.value=st.diaPagamento||defDiaPgto;
     dpSel.style.opacity=(st.acao===''||!st.acao||st.acao==='pagar')?'1':'0.3';
-    dpSel.addEventListener('change',(function(k_){return function(){DD_STATE[k_]=DD_STATE[k_]||{};DD_STATE[k_].diaPagamento=this.value;saveDDState();updateDDCockpit();};})(k));
+    dpSel.addEventListener('change',(function(k_){return function(){ddPushUndo();DD_STATE[k_]=DD_STATE[k_]||{};DD_STATE[k_].diaPagamento=this.value;saveDDState();updateDDCockpit();};})(k));
     tr.querySelectorAll('td')[8].appendChild(dpSel);
     // Nova data — td[9]
     var nd=document.createElement('input');nd.type='date';nd.className='dd-nova-data';nd.value=st.novaData||'';
     nd.style.display=(st.acao==='atrasar'||st.acao==='negociar')?'':'none';
-    nd.addEventListener('change',(function(k_){return function(){DD_STATE[k_]=DD_STATE[k_]||{};DD_STATE[k_].novaData=this.value;saveDDState();updateDDCockpit();};})(k));
+    nd.addEventListener('change',(function(k_){return function(){ddPushUndo();DD_STATE[k_]=DD_STATE[k_]||{};DD_STATE[k_].novaData=this.value;saveDDState();updateDDCockpit();};})(k));
     tr.querySelectorAll('td')[9].appendChild(nd);
     // Banco select — td[10]
     var bsel=document.createElement('select');bsel.className='dd-banco-sel';
@@ -4763,7 +4809,7 @@ function renderDecisaoDia() {
     getCBList().forEach(function(c){bancosOpts+='<option value="'+c.id+'">'+c.nome+'</option>';});
     bsel.innerHTML=bancosOpts;
     bsel.value=st.banco||'';
-    bsel.addEventListener('change',(function(k_){return function(){DD_STATE[k_]=DD_STATE[k_]||{};DD_STATE[k_].banco=this.value;saveDDState();updateDDCockpit();};})(k));
+    bsel.addEventListener('change',(function(k_){return function(){ddPushUndo();DD_STATE[k_]=DD_STATE[k_]||{};DD_STATE[k_].banco=this.value;saveDDState();updateDDCockpit();};})(k));
     tr.querySelectorAll('td')[10].appendChild(bsel);
     // Forma de pagamento — td[11]
     var fsel=document.createElement('select');fsel.className='dd-banco-sel';
@@ -4771,7 +4817,7 @@ function renderDecisaoDia() {
       var opt=document.createElement('option');opt.value=o[0];opt.textContent=o[1];
       if((st.forma||'lote')===o[0])opt.selected=true;fsel.appendChild(opt);
     });
-    fsel.addEventListener('change',(function(k_){return function(){DD_STATE[k_]=DD_STATE[k_]||{};DD_STATE[k_].forma=this.value;saveDDState();};})(k));
+    fsel.addEventListener('change',(function(k_){return function(){ddPushUndo();DD_STATE[k_]=DD_STATE[k_]||{};DD_STATE[k_].forma=this.value;saveDDState();};})(k));
     tr.querySelectorAll('td')[11].appendChild(fsel);
     // Obs — td[12]
     var obs=document.createElement('input');obs.type='text';obs.className='dd-obs-input';obs.placeholder='Observação...';obs.value=st.obs||'';
@@ -5469,6 +5515,7 @@ function ddBulkAcaoChange(sel){
 function ddBulkApply(){
   var keys=ddGetCheckedKeys();
   if(!keys.length)return;
+  ddPushUndo();
   var acao=document.getElementById('dd-bulk-acao').value;
   var banco=document.getElementById('dd-bulk-banco').value;
   var novaData=document.getElementById('dd-bulk-nova-data').value;
