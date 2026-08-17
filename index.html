@@ -5369,11 +5369,33 @@ var CONTAS_BANCARIAS_DEFAULT = [
 function getBancoCor(banco){ return BANCO_CORES[banco]||'#888'; }
 
 function loadCB(){
+  var list;
   try{
     var s=localStorage.getItem('fin_contas_bancarias_v1');
-    if(s) return JSON.parse(s);
+    if(s) list=JSON.parse(s);
   }catch(e){}
-  return JSON.parse(JSON.stringify(CONTAS_BANCARIAS_DEFAULT));
+  if(!list) return JSON.parse(JSON.stringify(CONTAS_BANCARIAS_DEFAULT));
+
+  // Fix IDs: banks matching a default by name must use the canonical default ID
+  var defByNome={};
+  CONTAS_BANCARIAS_DEFAULT.forEach(function(c){defByNome[c.nome]=c.id;});
+  var changed=false;
+  list.forEach(function(c){
+    if(defByNome[c.nome] && c.id!==defByNome[c.nome]){
+      c.id=defByNome[c.nome]; changed=true;
+    }
+  });
+
+  // Deduplicate: if two entries share an ID, reassign the later one
+  var seen={};
+  var maxN=list.reduce(function(m,c){var n=parseInt((c.id||'').replace('c',''))||0;return n>m?n:m;},0);
+  list.forEach(function(c){
+    if(seen[c.id]){maxN++;c.id='c'+maxN;changed=true;}
+    seen[c.id]=true;
+  });
+
+  if(changed) try{localStorage.setItem('fin_contas_bancarias_v1',JSON.stringify(list));}catch(e){}
+  return list;
 }
 function saveCB(list){
   try{localStorage.setItem('fin_contas_bancarias_v1',JSON.stringify(list));}catch(e){}
