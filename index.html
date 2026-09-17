@@ -2347,8 +2347,15 @@ function parseNovoCSVPagar(text) {
 
     const planoFin = codPlano ? (codPlano+' - '+descPlano) : '';
     const empresa  = codObra  ? (codObra+' - '+descObra)   : 'Sem centro de custo';
-    // Dedup key: titulo + plano_fin (same plano = aggregate)
+    // Dedup key: titulo + plano_fin + data + empresa
+    // Mesmo (titulo, plano, data, empresa) pode aparecer N vezes por rateio de obra —
+    // o Valor aprop fin é idêntico em cada repetição, então só registramos na 1ª ocorrência.
     const key = titulo+'||'+planoFin+'||'+dtVenc+'||'+empresa;
+
+    // Código da obra desta linha (col 32), para rastrear obras impactadas
+    const codObraLinha = String(cols[32]||'').trim();
+    const descObraLinha = String(cols[33]||'').trim();
+    const obraLabel = codObraLinha ? (codObraLinha+(descObraLinha?' - '+descObraLinha:'')) : '';
 
     if(!map[key]){
       const parts=dtVenc.split('-');
@@ -2364,12 +2371,15 @@ function parseNovoCSVPagar(text) {
         plano_fin:planoFin,
         data:_eff0, semana:getSemana(_eff0),
         mes:_pts0[0]+'-'+_pts0[1], ano:parseInt(_pts0[0]),
-        valor:0,
+        valor:valorAO,  // registra na 1ª ocorrência; linhas subsequentes com mesmo key são ignoradas
+        obras: obraLabel ? [obraLabel] : [],
         status:_eff0<todayISO?'VENCIDO':'A VENCER'
       };
       order.push(key);
+    } else if(obraLabel && !map[key].obras.includes(obraLabel)){
+      // Acumula obras impactadas por este título+plano (sem duplicar)
+      map[key].obras.push(obraLabel);
     }
-    map[key].valor += valorAO;
   }
 
   return order.map(k=>{
