@@ -4517,7 +4517,7 @@ function updateDDCockpit() {
     var k=ddKey(r);var st=DD_STATE[k]||{acao:'pagar'};
     var isPagar=st.acao==='pagar';
     var isNegDentro=st.acao==='negociar'&&st.novaData&&st.novaData>=_pSel.de&&st.novaData<=_pSel.ate;
-    if(isPagar||isNegDentro){selPagar+=Math.abs(r.valor);selQ++;}
+    if(isPagar||isNegDentro){var _j=st.valor_juros!=null?st.valor_juros:(r.valor_juros||0);selPagar+=Math.abs(r.valor)+_j;selQ++;}
   });
   // Antecipações extras fora do período selecionado
   var p=ddGetPeriod();
@@ -4862,9 +4862,9 @@ function renderDecisaoDia() {
     tr.dataset.valor=Math.abs(r.valor).toString();
     applyDDRowStyle(tr,st.acao);
     // Cols: 0=cb, 1=titulo, 2=forn, 3=plano, 4=venc, 5=atraso, 6=valor, 7=juros, 8=total, 9=ação, 10=diaPgto, 11=nova data, 12=banco, 13=forma, 14=obs
-    var _juros=r.valor_juros||0;
-    var _jurosFmt=_juros>0?('<span style="color:var(--ink2);font-size:11px">'+fmtPos(_juros)+'</span>'):'<span style="color:var(--ink3);font-size:11px">—</span>';
-    var _totalFmt=fmtNeg(r.valor-_juros);
+    var _jurosBase=r.valor_juros||0; // valor do CSV (col 20), usado como padrão
+    var _jurosEfetivo=(st.valor_juros!=null?st.valor_juros:_jurosBase); // override via DD_STATE
+    var _totalValor=Math.abs(r.valor)+_jurosEfetivo;
     var _fornDisp=(r.manual?'<span style="background:#e0f2fe;color:#0369a1;font-size:9px;font-weight:700;padding:1px 4px;border-radius:3px;margin-right:3px">MANUAL</span>':'')+trunc(r.fornecedor,22);
     tr.innerHTML='<td style="text-align:center;padding:4px 2px"></td>'
       +'<td style="text-align:center;font-family:DM Mono,monospace;font-size:11px;color:var(--ink2);white-space:nowrap">'+(r.titulo||'—')+'</td>'
@@ -4873,15 +4873,29 @@ function renderDecisaoDia() {
       +'<td style="font-family:DM Mono,monospace;font-size:11px;white-space:nowrap">'+fmtDate(r.data)+'</td>'
       +'<td style="text-align:center">'+atrasoBadge+'</td>'
       +'<td class="tr" style="color:var(--red);font-weight:600">'+fmtNeg(r.valor)+'</td>'
-      +'<td class="tr">'+_jurosFmt+'</td>'
-      +'<td class="tr" style="color:var(--red);font-weight:600">'+_totalFmt+'</td>'
+      +'<td class="tr" style="padding:2px 4px"></td>'
+      +'<td class="tr" style="color:var(--red);font-weight:600;white-space:nowrap">'+fmtNeg(-_totalValor)+'</td>'
       +'<td></td><td></td><td></td><td></td><td></td><td></td>';
     // Checkbox
     var cb=document.createElement('input');cb.type='checkbox';cb.className='dd-cb';
     cb.dataset.key=k;
     cb.addEventListener('change',function(){ddUpdateBulkBar();});
     tr.querySelectorAll('td')[0].appendChild(cb);
-    // Action select — td[7]
+    // Juros input — td[7]
+    var jInp=document.createElement('input');jInp.type='number';jInp.min='0';jInp.step='0.01';
+    jInp.className='dd-obs-input';jInp.style.cssText='width:80px;text-align:right;font-family:DM Mono,monospace;font-size:11px;';
+    jInp.placeholder='0,00';
+    if(_jurosEfetivo>0)jInp.value=_jurosEfetivo.toFixed(2);
+    jInp.addEventListener('input',(function(k_,r_,tr_){return function(){
+      var v=parseFloat(this.value)||0;
+      DD_STATE[k_]=DD_STATE[k_]||{};DD_STATE[k_].valor_juros=v;
+      var tot=Math.abs(r_.valor)+v;
+      var tdTot=tr_.querySelectorAll('td')[8];
+      if(tdTot)tdTot.textContent=fmtNeg(-tot);
+      saveDDState();
+    };})(k,r,tr));
+    tr.querySelectorAll('td')[7].appendChild(jInp);
+    // Action select — td[9]
     var sel=document.createElement('select');sel.className='dd-action-select';
     [['pagar','✓ Pagar hoje'],['','— Pendente —'],['atrasar','↷ Atrasar'],['negociar','✎ Negociar']].forEach(function(o){
       var opt=document.createElement('option');opt.value=o[0];opt.textContent=o[1];
@@ -4983,7 +4997,7 @@ function ddExportExcel() {
     var diff=Math.round((today-new Date(r.data+'T00:00:00'))/86400000);
     var conta=st.banco?getCBList().find(function(c){return c.id===st.banco;}):null;
     var formaLabel=(st.forma||'lote')==='manual'?'Manual':'Pago em Lote';
-    var jur=r.valor_juros||0;
+    var jur=st.valor_juros!=null?st.valor_juros:(r.valor_juros||0);
     return [r.titulo||'',r.fornecedor,r.plano_fin||'',r.empresa,r.documento,r.tipo_doc,fmtDate(r.data),diff,Math.abs(r.valor),jur,Math.abs(r.valor)+jur,st.acao||'Pagar hoje',st.novaData||'',conta?conta.nome:'',formaLabel,st.obs||''];
   });
   var wb=XLSX.utils.book_new();
