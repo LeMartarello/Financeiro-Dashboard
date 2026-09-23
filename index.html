@@ -945,6 +945,7 @@ th.dd-sortable:not(.sort-asc):not(.sort-desc) .sort-icon::after{content:'⇅';}
         <div style="font-size:11px;color:var(--ink3);margin-top:2px" id="dd-date-lbl">Títulos vencidos e vencendo hoje</div>
       </div>
       <div style="display:flex;gap:8px">
+        <button class="btn btn-sm" style="background:var(--accent);color:#fff" onclick="openManualModal()">+ Lançamento Manual</button>
         <button class="btn btn-secondary btn-sm" onclick="ddExportJSON()">💾 Salvar decisões</button>
         <button class="btn btn-secondary btn-sm" onclick="document.getElementById('dd-import-file').click()">📂 Restaurar</button>
         <input type="file" id="dd-import-file" accept=".json" style="display:none" onchange="ddImportJSON(this)">
@@ -1017,7 +1018,7 @@ th.dd-sortable:not(.sort-asc):not(.sort-desc) .sort-icon::after{content:'⇅';}
         <button class="dd-bulk-btn ghost" onclick="document.getElementById('dd-search').value='';ddApplyFilter()" title="Limpar pesquisa" style="padding:4px 10px">✕</button>
         <span class="dd-search-count" id="dd-search-count"></span>
       </div>
-      <table id="dd-table" style="min-width:1100px">
+      <table id="dd-table" style="min-width:1280px">
         <thead><tr>
           <th style="width:3%;text-align:center;padding:6px 4px">
             <input type="checkbox" class="dd-cb" id="dd-chk-all" title="Selecionar todos" onchange="ddToggleAll(this.checked)">
@@ -1028,6 +1029,8 @@ th.dd-sortable:not(.sort-asc):not(.sort-desc) .sort-icon::after{content:'⇅';}
           <th class="dd-sortable" data-col="data" onclick="ddSetSort('data')">Vencimento<span class="sort-icon"></span></th>
           <th class="dd-sortable" style="text-align:center" data-col="atraso" onclick="ddSetSort('atraso')">Atraso<span class="sort-icon"></span></th>
           <th class="dd-sortable tr" data-col="valor" onclick="ddSetSort('valor')">Valor<span class="sort-icon"></span></th>
+          <th class="tr" style="white-space:nowrap;font-size:11px">Juros</th>
+          <th class="tr" style="white-space:nowrap;font-size:11px">Total</th>
           <th class="dd-sortable" data-col="acao" onclick="ddSetSort('acao')">Ação<span class="sort-icon"></span></th>
           <th class="dd-sortable" data-col="diaPagamento" onclick="ddSetSort('diaPagamento')" style="white-space:nowrap">Dia Pgto<span class="sort-icon"></span></th>
           <th class="dd-sortable" data-col="novaData" onclick="ddSetSort('novaData')">Nova Data<span class="sort-icon"></span></th>
@@ -2341,6 +2344,7 @@ function parseNovoCSVPagar(text) {
     const codObra    = String(cols[26]||'').trim(); // Código centro custo
     const descObra   = String(cols[27]||'').trim(); // Desc centro custo
     const valorAO    = parseValorBR(cols[31]); // Valor aprop fin (col 31)
+    const valorJuros = parseValorBR(cols[20]); // Valor juros (col 20)
 
     if(!dtVenc||!titulo||!nomeCredor)continue;
     if(!valorAO)continue;
@@ -2372,6 +2376,7 @@ function parseNovoCSVPagar(text) {
         data:_eff0, semana:getSemana(_eff0),
         mes:_pts0[0]+'-'+_pts0[1], ano:parseInt(_pts0[0]),
         valor:valorAO,  // registra na 1ª ocorrência; linhas subsequentes com mesmo key são ignoradas
+        valor_juros:valorJuros,
         obras: obraLabel ? [obraLabel] : [],
         status:_eff0<todayISO?'VENCIDO':'A VENCER'
       };
@@ -4267,6 +4272,7 @@ function renderFluxo15Ext() {
 var DD_STATE = {};
 var DD_TODAY = '';
 var _ddFromSupabase = false; // flag: DD_STATE foi carregado do Supabase
+var MANUAL_PAGAR = [];
 
 function ddGetPeriodDays() {
   var p=ddGetPeriod(), days=[];
@@ -4317,20 +4323,28 @@ function getDDTitles() {
   var p=ddGetPeriod();
   var onlyEstr = document.getElementById('dd-only-estr');
   var filterEstr = onlyEstr && onlyEstr.checked;
-  return RAW_PAGAR.filter(function(r){
+  var normal = RAW_PAGAR.filter(function(r){
     if(typeof selEmpresas!=='undefined'&&!selEmpresas.has(r.empresa)) return false;
     if(typeof selTipos!=='undefined'&&!selTipos.has(r.tipo_doc)) return false;
     if(typeof selFornecedores!=='undefined'&&!selFornecedores.has(r.fornecedor)) return false;
     if(typeof allPlanos!=='undefined'&&allPlanos.length>0&&r.plano_fin&&!selPlanos.has(r.plano_fin)) return false;
     if(filterEstr && !isCritico(r.fornecedor)) return false;
-    // Inclui se vencimento original está no período (igual ao fluxo)
     var inByDate = r.data>=p.de && r.data<=p.ate;
-    // Inclui também se foi remarcado (novaData) para dentro do período, vindo de fora
     var st=DD_STATE[ddKey(r)]||{};
     var nd=st.novaData;
     var inByNovaData = nd && nd>=p.de && nd<=p.ate && !inByDate;
     return inByDate || inByNovaData;
   });
+  // Inclui lançamentos manuais no período (ignoram filtros de empresa/tipo)
+  var manualInPeriod=(MANUAL_PAGAR||[]).filter(function(r){
+    if(filterEstr) return false; // manuais não são estratégicos
+    var inByDate=r.data>=p.de&&r.data<=p.ate;
+    var st=DD_STATE[ddKey(r)]||{};
+    var nd=st.novaData;
+    var inByNovaData=nd&&nd>=p.de&&nd<=p.ate&&!inByDate;
+    return inByDate||inByNovaData;
+  });
+  return normal.concat(manualInPeriod);
 }
 function getDDReceivables() {
   var p=ddGetPeriod();
@@ -4360,6 +4374,92 @@ function loadDDState() {
 function saveDDState() {
   try{localStorage.setItem('fin_decisao_v1_'+DD_TODAY,JSON.stringify(DD_STATE));}catch(e){}
   gasSaveDebounced('decisoes', DD_STATE);
+}
+function loadManualPagar() {
+  try{var s=localStorage.getItem('fin_manual_pagar_v1');if(s)MANUAL_PAGAR=JSON.parse(s);}catch(e){MANUAL_PAGAR=[];}
+}
+function saveManualPagar() {
+  try{localStorage.setItem('fin_manual_pagar_v1',JSON.stringify(MANUAL_PAGAR));}catch(e){}
+  gasSaveDebounced('manual_pagar', MANUAL_PAGAR);
+}
+function deleteManualEntry(titulo) {
+  MANUAL_PAGAR=MANUAL_PAGAR.filter(function(r){return r.titulo!==titulo;});
+  saveManualPagar();
+  renderDecisaoDia();
+  updateDDCockpit();
+}
+function addManualEntry(data) {
+  var todayISO_=new Date().toISOString().slice(0,10);
+  var entry={
+    titulo:'MANUAL-'+Date.now(),
+    fornecedor:data.fornecedor,
+    empresa:data.empresa||'—',
+    documento:'',
+    tipo_doc:'MANUAL',
+    plano_fin:'',
+    data:data.data,
+    semana:getSemana(data.data),
+    mes:data.data.slice(0,7),
+    ano:parseInt(data.data.slice(0,4)),
+    valor:-Math.abs(data.valor),
+    valor_juros:0,
+    obras:[],
+    status:data.data<todayISO_?'VENCIDO':'A VENCER',
+    manual:true
+  };
+  MANUAL_PAGAR.push(entry);
+  var k=ddKey(entry);
+  DD_STATE[k]=DD_STATE[k]||{};
+  DD_STATE[k].acao='pagar';
+  var p=ddGetPeriod();
+  DD_STATE[k].diaPagamento=(entry.data>=p.de&&entry.data<=p.ate)?entry.data:p.de;
+  if(data.banco)DD_STATE[k].banco=data.banco;
+  if(data.forma)DD_STATE[k].forma=data.forma;
+  if(data.obs)DD_STATE[k].obs=data.obs;
+  saveManualPagar();
+  saveDDState();
+  renderDecisaoDia();
+  updateDDCockpit();
+}
+function openManualModal() {
+  var prev=document.getElementById('manual-modal');if(prev)prev.remove();
+  var p=ddGetPeriod();
+  var today_=new Date().toISOString().slice(0,10);
+  var defaultData=today_>=p.de&&today_<=p.ate?today_:p.de;
+  var bancosOpts='<option value="">— sem banco —</option>';
+  getCBList().forEach(function(c){bancosOpts+='<option value="'+c.id+'">'+c.nome+'</option>';});
+  var modal=document.createElement('div');modal.id='manual-modal';modal.className='cfg-modal-bg';
+  modal.innerHTML='<div class="cfg-modal" style="max-width:480px"><div class="cfg-modal-title">+ Lançamento Manual</div>'
+    +'<div class="cfg-form-grid">'
+    +'<div class="cfg-form-full"><label class="cfg-label">Fornecedor *</label><input id="ml-forn" class="cfg-input" placeholder="Nome do fornecedor"></div>'
+    +'<div><label class="cfg-label">Valor (R$) *</label><input id="ml-valor" class="cfg-input" type="number" min="0" step="0.01" placeholder="0,00"></div>'
+    +'<div><label class="cfg-label">Vencimento *</label><input id="ml-data" class="cfg-input" type="date" value="'+defaultData+'"></div>'
+    +'<div class="cfg-form-full"><label class="cfg-label">Empresa / Centro de Custo</label><input id="ml-emp" class="cfg-input" placeholder="Ex: 1 - TALENCO..."></div>'
+    +'<div><label class="cfg-label">Banco</label><select id="ml-banco" class="cfg-input">'+bancosOpts+'</select></div>'
+    +'<div><label class="cfg-label">Forma</label><select id="ml-forma" class="cfg-input"><option value="lote">📦 Pago em Lote</option><option value="manual">✍ Manual</option></select></div>'
+    +'<div class="cfg-form-full"><label class="cfg-label">Observação</label><input id="ml-obs" class="cfg-input" placeholder="Opcional"></div>'
+    +'</div>'
+    +'<div style="display:flex;gap:8px;justify-content:flex-end;margin-top:20px">'
+    +'<button class="btn btn-secondary btn-sm" onclick="document.getElementById(\'manual-modal\').remove()">Cancelar</button>'
+    +'<button class="btn btn-sm" style="background:var(--accent);color:#fff" onclick="manualModalSave()">Salvar</button>'
+    +'</div></div>';
+  document.body.appendChild(modal);
+  modal.addEventListener('click',function(e){if(e.target===modal)modal.remove();});
+  setTimeout(function(){var el=document.getElementById('ml-forn');if(el)el.focus();},50);
+}
+function manualModalSave() {
+  var forn=(document.getElementById('ml-forn')||{}).value||'';
+  var valor=parseFloat((document.getElementById('ml-valor')||{}).value||'0');
+  var data=(document.getElementById('ml-data')||{}).value||'';
+  var emp=(document.getElementById('ml-emp')||{}).value||'';
+  var banco=(document.getElementById('ml-banco')||{}).value||'';
+  var forma=(document.getElementById('ml-forma')||{}).value||'lote';
+  var obs=(document.getElementById('ml-obs')||{}).value||'';
+  if(!forn){alert('Informe o fornecedor.');return;}
+  if(!valor||valor<=0){alert('Informe um valor válido.');return;}
+  if(!data){alert('Informe a data de vencimento.');return;}
+  addManualEntry({fornecedor:forn,valor:valor,data:data,empresa:emp,banco:banco,forma:forma,obs:obs});
+  var modal=document.getElementById('manual-modal');if(modal)modal.remove();
 }
 
 // ── Undo (histórico das decisões de pagamento) ────────────────────────
@@ -4761,14 +4861,20 @@ function renderDecisaoDia() {
     tr.dataset.doc=r.documento||'';
     tr.dataset.valor=Math.abs(r.valor).toString();
     applyDDRowStyle(tr,st.acao);
-    // Cols: 0=cb, 1=titulo, 2=forn, 3=plano, 4=venc, 5=atraso, 6=valor, 7=ação, 8=diaPgto, 9=nova data, 10=banco, 11=forma, 12=obs
+    // Cols: 0=cb, 1=titulo, 2=forn, 3=plano, 4=venc, 5=atraso, 6=valor, 7=juros, 8=total, 9=ação, 10=diaPgto, 11=nova data, 12=banco, 13=forma, 14=obs
+    var _juros=r.valor_juros||0;
+    var _jurosFmt=_juros>0?('<span style="color:var(--ink2);font-size:11px">'+fmtPos(_juros)+'</span>'):'<span style="color:var(--ink3);font-size:11px">—</span>';
+    var _totalFmt=fmtNeg(r.valor-_juros);
+    var _fornDisp=(r.manual?'<span style="background:#e0f2fe;color:#0369a1;font-size:9px;font-weight:700;padding:1px 4px;border-radius:3px;margin-right:3px">MANUAL</span>':'')+trunc(r.fornecedor,22);
     tr.innerHTML='<td style="text-align:center;padding:4px 2px"></td>'
       +'<td style="text-align:center;font-family:DM Mono,monospace;font-size:11px;color:var(--ink2);white-space:nowrap">'+(r.titulo||'—')+'</td>'
-      +'<td title="'+r.fornecedor+'">'+(isCrit?'<span class="badge-critico">⭐</span> ':'')+trunc(r.fornecedor,22)+'</td>'
+      +'<td title="'+r.fornecedor+'">'+(isCrit?'<span class="badge-critico">⭐</span> ':'')+_fornDisp+'</td>'
       +'<td title="'+(r.plano_fin||'')+'" style="font-size:11px;color:var(--ink2)">'+trunc(r.plano_fin||'—',20)+'</td>'
       +'<td style="font-family:DM Mono,monospace;font-size:11px;white-space:nowrap">'+fmtDate(r.data)+'</td>'
       +'<td style="text-align:center">'+atrasoBadge+'</td>'
       +'<td class="tr" style="color:var(--red);font-weight:600">'+fmtNeg(r.valor)+'</td>'
+      +'<td class="tr">'+_jurosFmt+'</td>'
+      +'<td class="tr" style="color:var(--red);font-weight:600">'+_totalFmt+'</td>'
       +'<td></td><td></td><td></td><td></td><td></td><td></td>';
     // Checkbox
     var cb=document.createElement('input');cb.type='checkbox';cb.className='dd-cb';
@@ -4785,14 +4891,14 @@ function renderDecisaoDia() {
       ddPushUndo();
       DD_STATE[k_]=DD_STATE[k_]||{};DD_STATE[k_].acao=this.value;
       applyDDRowStyle(tr_,this.value);
-      var nd=tr_.querySelectorAll('td')[9].querySelector('.dd-nova-data');
+      var nd=tr_.querySelectorAll('td')[11].querySelector('.dd-nova-data');
       if(nd)nd.style.display=(this.value==='atrasar'||this.value==='negociar')?'':'none';
-      var dpEl=tr_.querySelectorAll('td')[8].querySelector('select');
+      var dpEl=tr_.querySelectorAll('td')[10].querySelector('select');
       if(dpEl)dpEl.style.opacity=(this.value===''||this.value==='pagar')?'1':'0.3';
       saveDDState();updateDDCockpit();
     };})(k,tr));
-    tr.querySelectorAll('td')[7].appendChild(sel);
-    // Dia Pgto — td[8]: qual dia do período pagar este título
+    tr.querySelectorAll('td')[9].appendChild(sel);
+    // Dia Pgto — td[10]: qual dia do período pagar este título
     var periodDays=ddGetPeriodDays();
     var dpSel=document.createElement('select');dpSel.className='dd-banco-sel';
     if(periodDays.length<=1){
@@ -4806,32 +4912,40 @@ function renderDecisaoDia() {
     dpSel.value=st.diaPagamento||defDiaPgto;
     dpSel.style.opacity=(st.acao===''||!st.acao||st.acao==='pagar')?'1':'0.3';
     dpSel.addEventListener('change',(function(k_){return function(){ddPushUndo();DD_STATE[k_]=DD_STATE[k_]||{};DD_STATE[k_].diaPagamento=this.value;saveDDState();updateDDCockpit();};})(k));
-    tr.querySelectorAll('td')[8].appendChild(dpSel);
-    // Nova data — td[9]
+    tr.querySelectorAll('td')[10].appendChild(dpSel);
+    // Nova data — td[11]
     var nd=document.createElement('input');nd.type='date';nd.className='dd-nova-data';nd.value=st.novaData||'';
     nd.style.display=(st.acao==='atrasar'||st.acao==='negociar')?'':'none';
     nd.addEventListener('change',(function(k_){return function(){ddPushUndo();DD_STATE[k_]=DD_STATE[k_]||{};DD_STATE[k_].novaData=this.value;saveDDState();updateDDCockpit();};})(k));
-    tr.querySelectorAll('td')[9].appendChild(nd);
-    // Banco select — td[10]
+    tr.querySelectorAll('td')[11].appendChild(nd);
+    // Banco select — td[12]
     var bsel=document.createElement('select');bsel.className='dd-banco-sel';
     var bancosOpts='<option value="">— banco —</option>';
     getCBList().forEach(function(c){bancosOpts+='<option value="'+c.id+'">'+c.nome+'</option>';});
     bsel.innerHTML=bancosOpts;
     bsel.value=st.banco||'';
     bsel.addEventListener('change',(function(k_){return function(){ddPushUndo();DD_STATE[k_]=DD_STATE[k_]||{};DD_STATE[k_].banco=this.value;saveDDState();updateDDCockpit();};})(k));
-    tr.querySelectorAll('td')[10].appendChild(bsel);
-    // Forma de pagamento — td[11]
+    tr.querySelectorAll('td')[12].appendChild(bsel);
+    // Forma de pagamento — td[13]
     var fsel=document.createElement('select');fsel.className='dd-banco-sel';
     [['lote','📦 Pago em Lote'],['manual','✍ Manual']].forEach(function(o){
       var opt=document.createElement('option');opt.value=o[0];opt.textContent=o[1];
       if((st.forma||'lote')===o[0])opt.selected=true;fsel.appendChild(opt);
     });
     fsel.addEventListener('change',(function(k_){return function(){ddPushUndo();DD_STATE[k_]=DD_STATE[k_]||{};DD_STATE[k_].forma=this.value;saveDDState();};})(k));
-    tr.querySelectorAll('td')[11].appendChild(fsel);
-    // Obs — td[12]
+    tr.querySelectorAll('td')[13].appendChild(fsel);
+    // Obs — td[14]
     var obs=document.createElement('input');obs.type='text';obs.className='dd-obs-input';obs.placeholder='Observação...';obs.value=st.obs||'';
     obs.addEventListener('change',(function(k_){return function(){DD_STATE[k_]=DD_STATE[k_]||{};DD_STATE[k_].obs=this.value;saveDDState();};})(k));
-    tr.querySelectorAll('td')[12].appendChild(obs);
+    tr.querySelectorAll('td')[14].appendChild(obs);
+    // Para entradas manuais: botão excluir no td[1]
+    if(r.manual){
+      var del=document.createElement('button');
+      del.title='Excluir lançamento manual';del.textContent='✕';
+      del.style.cssText='font-size:10px;color:var(--red);margin-left:4px;background:none;border:none;cursor:pointer;padding:0 2px;vertical-align:middle;';
+      del.addEventListener('click',(function(tit_){return function(e){e.stopPropagation();if(confirm('Excluir lançamento manual?'))deleteManualEntry(tit_);};})(r.titulo));
+      tr.querySelectorAll('td')[1].appendChild(del);
+    }
     tbody.appendChild(tr);
   });
   updateDDCockpit();
@@ -4863,13 +4977,14 @@ function ddImportJSON(input) {
 function ddExportExcel() {
   var titles=getDDTitles();if(!titles.length){alert('Nenhum título para exportar.');return;}
   var today=new Date();today.setHours(0,0,0,0);
-  var headers=['Nº Título','Fornecedor','Plano Financeiro','Empresa','Documento','Tipo','Vencimento','Atraso (dias)','Valor (R$)','Ação','Nova Data','Banco','Forma Pgto','Observação'];
+  var headers=['Nº Título','Fornecedor','Plano Financeiro','Empresa','Documento','Tipo','Vencimento','Atraso (dias)','Valor (R$)','Juros (R$)','Total a Pagar (R$)','Ação','Nova Data','Banco','Forma Pgto','Observação'];
   var rows=titles.map(function(r){
     var k=ddKey(r),st=DD_STATE[k]||{};
     var diff=Math.round((today-new Date(r.data+'T00:00:00'))/86400000);
     var conta=st.banco?getCBList().find(function(c){return c.id===st.banco;}):null;
     var formaLabel=(st.forma||'lote')==='manual'?'Manual':'Pago em Lote';
-    return [r.titulo||'',r.fornecedor,r.plano_fin||'',r.empresa,r.documento,r.tipo_doc,fmtDate(r.data),diff,Math.abs(r.valor),st.acao||'Pagar hoje',st.novaData||'',conta?conta.nome:'',formaLabel,st.obs||''];
+    var jur=r.valor_juros||0;
+    return [r.titulo||'',r.fornecedor,r.plano_fin||'',r.empresa,r.documento,r.tipo_doc,fmtDate(r.data),diff,Math.abs(r.valor),jur,Math.abs(r.valor)+jur,st.acao||'Pagar hoje',st.novaData||'',conta?conta.nome:'',formaLabel,st.obs||''];
   });
   var wb=XLSX.utils.book_new();
   var ws=XLSX.utils.aoa_to_sheet([headers,...rows]);
@@ -5703,11 +5818,13 @@ function gasLoadAll() {
     sbLoadConfig('filtros'),
     sbFetchAllRows('base_pagar'),
     sbFetchAllRows('base_receber'),
-    sbLoadConfig('saldo_fluxo')
+    sbLoadConfig('saldo_fluxo'),
+    sbLoadConfig('manual_pagar')
   ]).then(function(results) {
     var decisoes=results[0], contas=results[1], estrateg=results[2],
         sincEmpr=results[3], sincEst=results[4], filtros=results[5],
-        basePagar=results[6], baseReceber=results[7], saldoFluxo=results[8];
+        basePagar=results[6], baseReceber=results[7], saldoFluxo=results[8],
+        manualPagar=results[9];
 
     if (decisoes && typeof decisoes === 'object') {
       DD_STATE = decisoes;
@@ -5771,6 +5888,10 @@ function gasLoadAll() {
       var sl = document.getElementById('saldo-limiar');
       if (si && saldoFluxo.inicial) { si.value = saldoFluxo.inicial; renderFluxo(); renderFluxo15(); }
       if (sl && saldoFluxo.limiar)  { sl.value = saldoFluxo.limiar;  renderFluxo(); renderFluxo15(); _reRenderExt(); }
+    }
+    if (manualPagar && Array.isArray(manualPagar)) {
+      MANUAL_PAGAR = manualPagar;
+      try { localStorage.setItem('fin_manual_pagar_v1', JSON.stringify(manualPagar)); } catch(e) {}
     }
     var nc=document.getElementById('nav-count');
     if(nc) nc.textContent=RAW_PAGAR.length+' + '+RAW_RECEBER.length+' títulos';
@@ -6021,6 +6142,7 @@ loadAllData().then(() => {
   initProfilesAPR();
   loadCriticos();
   loadSincEmpreiteiros();
+  loadManualPagar();
   // Init PR
   curB64Recebidas = ORIG_B64_RECEBIDAS_PR;
   if (typeof initDashPR === 'function') initDashPR();
