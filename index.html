@@ -4507,8 +4507,12 @@ document.addEventListener('keydown', function(e) {
 // ─────────────────────────────────────────────────────────────────────
 function updateDDCockpit() {
   var titles=getDDTitles(), recvs=getDDReceivables();
-  // "A Pagar no Período" = todos os títulos do período (mesma base do fluxo)
-  var totalPagar=titles.reduce(function(s,r){return s+Math.abs(r.valor);},0);
+  // "A Pagar no Período" = todos os títulos do período (inclui juros/desconto)
+  var totalPagar=titles.reduce(function(s,r){
+    var _st=DD_STATE[ddKey(r)]||{};
+    var _j=_st.valor_juros!=null?_st.valor_juros:(r.valor_juros||0);
+    return s+Math.abs(r.valor)+_j;
+  },0);
   var totalReceber=recvs.reduce(function(s,r){return s+Math.abs(r.valor);},0);
   // "Selecionado p/ Pagar" = pagar + negociar com novaData dentro do período
   var _pSel=ddGetPeriod();
